@@ -1,33 +1,41 @@
 package org.gosqo.tcpsocket;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.util.logging.Logger;
+
 public class MainView {
 
+    private static final Logger log = Logger.getLogger("MainView");
+    private final ConnectionController connectionController = new ConnectionController();
     boolean isServerMode = false;
 
     Label modeSelectionLabel;
     RadioButton serverModeButton, clientModeButton;
     TextArea chatConsole, appMessageConsole;
     TextField ipAddressInput, portInput, chatInput;
-    Button serverStartButton, clientStartButton, chatSendButton;
+    Button serverStartButton, clientStartButton, chatSendButton, serverStopButton;
     ToggleGroup modeToggleGroup;
 
     VBox connectForm;
 
-    void initElements() {
+    private void initElements() {
         // mode selection
         modeSelectionLabel = new Label("Select a mode as");
         modeToggleGroup = new ToggleGroup();
         clientModeButton = new RadioButton("Client");
+        serverModeButton = new RadioButton("Server");
+
         clientModeButton.setToggleGroup(modeToggleGroup);
         clientModeButton.setSelected(true);
-        serverModeButton = new RadioButton("Server");
+
         serverModeButton.setToggleGroup(modeToggleGroup);
+
         modeToggleGroup.selectedToggleProperty().addListener(
                 (observableValue, toggle, t1) -> {
                     isServerMode = t1 == serverModeButton;
@@ -38,22 +46,31 @@ public class MainView {
         // connect form
         connectForm = new VBox(10);
         ipAddressInput = new TextField();
-        ipAddressInput.setPromptText("Enter server IP Address.");
         portInput = new TextField();
-        portInput.setPromptText("Enter the server port.");
         serverStartButton = new Button("Start Server");
-        clientStartButton = new Button("Join Server");
+        clientStartButton = new Button("Join to Chat");
+        serverStopButton = new Button("Stop Server");
+
+        ipAddressInput.setPromptText("Enter server IP Address.");
+
+        portInput.setPromptText("Enter the server port.");
 
         connectForm.getChildren().setAll(clientModeConnectForm());
 
         // consoles
-        appMessageConsole = new TextArea("app message appears here.");
-        appMessageConsole.setEditable(false);
+        appMessageConsole = new TextArea();
         chatConsole = new TextArea();
-        chatConsole.setEditable(false);
         chatInput = new TextField();
-        chatInput.setPromptText("chat here.");
         chatSendButton = new Button("Send");
+
+        appMessageConsole.setPromptText("app message appears here.");
+        appMessageConsole.setEditable(false);
+
+        chatConsole.setEditable(false);
+
+        chatInput.setPromptText("chat here.");
+
+        addElementsHandlers();
     }
 
     private void toggleConnectFormComponent() {
@@ -62,7 +79,46 @@ public class MainView {
         );
     }
 
-    VBox consoleComponent() {
+    private void addElementsHandlers() {
+        String ipAddress = ipAddressInput.getText();
+        serverStartButton.setOnAction(event -> startServer());
+        serverStopButton.setOnAction(event -> stopServer());
+
+        clientStartButton.setOnAction(event -> startClient());
+//        clientStartButton.setOnAction((event) -> connectionController.handleClientStart(ipAddress, port));
+    }
+
+    private void startClient() {
+        String ipAddress = ipAddressInput.getText();
+        String port = portInput.getText();
+
+        connectionController.runClient(ipAddress, port);
+    }
+
+    private void appendAppMessageConsole(String message) {
+        Platform.runLater(() -> appMessageConsole.appendText(message + "\n"));
+    }
+
+    private void stopServer() {
+        Response response = connectionController.stopServer();
+
+        if (response.status() == 200) {
+            appendAppMessageConsole(response.message());
+        }
+    }
+
+    private void startServer() {
+        String port = portInput.getText();
+        Response startResponse = connectionController.startServer(port);
+
+        if (startResponse.status() == 200) {
+            Response listenResponse = connectionController.makeServerListen();
+        }
+
+        appendAppMessageConsole(startResponse.message());
+    }
+
+    private VBox consoleComponent() {
         VBox component = new VBox(10);
         component.getChildren().addAll(
                 appMessageConsole
@@ -74,17 +130,23 @@ public class MainView {
         return component;
     }
 
-    VBox serverModeConnectForm() {
+    private VBox serverModeConnectForm() {
+        HBox buttons = new HBox(10);
+        buttons.getChildren().addAll(
+                serverStartButton
+                , serverStopButton
+        );
+
         VBox component = new VBox(10);
         component.getChildren().addAll(
                 portInput
-                , serverStartButton
+                , buttons
         );
 
         return component;
     }
 
-    VBox clientModeConnectForm() {
+    private VBox clientModeConnectForm() {
         VBox component = new VBox(10);
         component.getChildren().addAll(
                 ipAddressInput
@@ -95,7 +157,7 @@ public class MainView {
         return component;
     }
 
-    VBox modeSelectionComponent() {
+    private VBox modeSelectionComponent() {
         HBox radioButtons = new HBox(10);
         radioButtons.getChildren().addAll(
                 clientModeButton
