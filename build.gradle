@@ -1,5 +1,8 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'org.beryx.jlink' version '3.0.1'
 }
 
 group = 'org.gosqo'
@@ -9,11 +12,24 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+// No main class specified and classpath is not an executable jar.
+application {
+    mainClass = 'org.gosqo.tcpsocket.ChatApp'
 }
 
-test {
-    useJUnitPlatform()
+javafx {
+    version = "17.0.7"
+    modules = [ 'javafx.controls' ]
+}
+
+tasks.register('printJavafxPath') {
+    doLast {
+        configurations.compileClasspath.each {
+            def path = it.toString()
+            def lastSlashIndex = path.lastIndexOf("/")
+            def toPrint = path.substring(0, lastSlashIndex)
+
+            println toPrint
+        }
+    }
 }
