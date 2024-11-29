@@ -6,13 +6,29 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class ServerSocketRunner implements Runnable {
     private static final Logger log = Logger.getLogger("ServerSocketRunner");
+    private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
+    private final Consumer<String> receivedMessageHandler;
+    private final Consumer<String> appMessageHandler;
     Socket clientSocket;
     ServerSocket serverSocket;
     private int port;
+    private Thread receiveThread;
+    private Thread transmitThread;
+    public ServerSocketRunner(
+            Consumer<String> receivedMessageHandler
+            , Consumer<String> appMessageHandler
+    ) {
+        this.receivedMessageHandler = receivedMessageHandler;
+        this.appMessageHandler = appMessageHandler;
+    }
 
     public int getPort() {
         return port;
@@ -24,6 +40,7 @@ public class ServerSocketRunner implements Runnable {
 
     @Override
     public void run() {
+        Thread.currentThread().setName("=Server Main Thread");
 
         try {
             serverSocket = new ServerSocket(port);
@@ -36,7 +53,7 @@ public class ServerSocketRunner implements Runnable {
         log.info("server is listening ...");
     }
 
-    public void stopServer() {
+    public void close() {
         try {
             if (serverSocket.isClosed()) {
                 throw new RuntimeException("Server's" + port + " port has been closed.");
@@ -48,6 +65,8 @@ public class ServerSocketRunner implements Runnable {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
             }
+
+            transmitThread.interrupt();
         } catch (IOException e) {
             log.warning("서버 종료 에러: " + e.getMessage());
         }
@@ -66,37 +85,42 @@ public class ServerSocketRunner implements Runnable {
 
     public void runCommunicate() {
 
-        Thread clientHandler = new Thread(() -> handleClient(clientSocket), "server's client handler");
-        Thread serverInputHandler = new Thread(() -> handleServerInput(clientSocket), "server input handler");
+        receiveThread = new Thread(() -> handleReceive(clientSocket), "=Server Receiver");
+        transmitThread = new Thread(() -> handleTransmit(clientSocket), "=Server Transmitter");
 
-        clientHandler.start();
-        serverInputHandler.start();
+        receiveThread.start();
+        transmitThread.start();
     }
 
-    private void handleServerInput(Socket clientSocket) {
+    public void addMessageToQueue(String message) {
+        messageQueue.offer(message);
+    }
+
+    private void handleTransmit(Socket clientSocket) {
         try {
             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
 
-            String input;
-            while ((input = consoleInput.readLine()) != null) {
-                writer.println(input);
+            while (!serverSocket.isClosed() && !Thread.currentThread().isInterrupted()) {
+                String message = messageQueue.poll(500, TimeUnit.MILLISECONDS);
+                if (message != null) {
+                    writer.println(message);
+                }
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             log.warning("서버 입력 핸들러 에러: " + e.getMessage());
         }
     }
 
-    private void handleClient(Socket clientSocket) {
+    private void handleReceive(Socket clientSocket) {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            String message;
+            String received;
 
-            while ((message = reader.readLine()) != null) {
-                System.out.println("클라이언트 메시지: " + message);
+            while ((received = reader.readLine()) != null) {
+                receivedMessageHandler.accept("Client: " + received);
             }
         } catch (IOException e) {
-            log.warning("클라이언트 핸들러 에러: " + e.getMessage());
+            appMessageHandler.accept("Client: " + e.getMessage());
         }
     }
 }

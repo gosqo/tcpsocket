@@ -14,6 +14,7 @@ public class ChatApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         stage.setScene(mainView.createScene());
+        stage.setOnCloseRequest(event -> mainView.stageClose());
         stage.show();
     }
 }

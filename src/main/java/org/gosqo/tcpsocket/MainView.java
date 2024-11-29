@@ -12,12 +12,14 @@ import java.util.logging.Logger;
 public class MainView {
 
     private static final Logger log = Logger.getLogger("MainView");
-    private final ConnectionController connectionController = new ConnectionController();
     boolean isServerMode = false;
-
     Label modeSelectionLabel;
     RadioButton serverModeButton, clientModeButton;
     TextArea chatConsole, appMessageConsole;
+    private final ConnectionController connectionController = new ConnectionController(
+            this::appendReceivedMessage
+            , this::appendAppMessage
+    );
     TextField ipAddressInput, portInput, chatInput;
     Button serverStartButton, clientStartButton, chatSendButton, serverStopButton;
     ToggleGroup modeToggleGroup;
@@ -52,8 +54,10 @@ public class MainView {
         serverStopButton = new Button("Stop Server");
 
         ipAddressInput.setPromptText("Enter server IP Address.");
+        ipAddressInput.setText("127.0.0.1");
 
         portInput.setPromptText("Enter the server port.");
+        portInput.setText("8080");
 
         connectForm.getChildren().setAll(clientModeConnectForm());
 
@@ -86,11 +90,30 @@ public class MainView {
         serverStopButton.setOnAction(event -> stopServer());
 
         clientStartButton.setOnAction(event -> startClient());
+
+        chatSendButton.setOnAction(event -> sendMessage());
+    }
+
+    void stageClose() {
+        connectionController.stopOnCloseStage(isServerMode);
     }
 
     // in common (client, server)
-    private void appendAppMessageConsole(String message) {
+    private void appendAppMessage(String message) {
         Platform.runLater(() -> appMessageConsole.appendText(message + "\n"));
+    }
+
+    private void sendMessage() {
+        String message = chatInput.getText();
+
+        connectionController.sendMessage(message, isServerMode);
+
+        chatConsole.appendText("Me: " + message + "\n");
+//        chatInput.clear();
+    }
+
+    public void appendReceivedMessage(String message) {
+        Platform.runLater(() -> chatConsole.appendText(message + "\n"));
     }
 
     // client
@@ -110,14 +133,14 @@ public class MainView {
             Response listenResponse = connectionController.makeServerListen();
         }
 
-        appendAppMessageConsole(startResponse.message());
+        appendAppMessage(startResponse.message());
     }
 
     private void stopServer() {
         Response response = connectionController.stopServer();
 
         if (response.status() == 200) {
-            appendAppMessageConsole(response.message());
+            appendAppMessage(response.message());
         }
     }
 
