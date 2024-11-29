@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'org.gosqo'
-version = '1.0-SNAPSHOT'
+version = '0.1'
 
 repositories {
     mavenCentral()
@@ -14,6 +14,7 @@ repositories {
 
 // No main class specified and classpath is not an executable jar.
 application {
+    mainModule = 'org.gosqo.tcpsocket'
     mainClass = 'org.gosqo.tcpsocket.ChatApp'
 }
 
@@ -26,10 +27,18 @@ tasks.register('printJavafxPath') {
     doLast {
         configurations.compileClasspath.each {
             def path = it.toString()
-            def lastSlashIndex = path.lastIndexOf("/")
+            def lastSlashIndex = path.lastIndexOf(File.separator)
             def toPrint = path.substring(0, lastSlashIndex)
 
             println toPrint
         }
+    }
+}
+
+jlink {
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+
+    launcher {
+        name = 'tcpsocket'
     }
 }
