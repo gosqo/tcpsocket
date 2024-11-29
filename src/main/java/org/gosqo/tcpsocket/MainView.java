@@ -70,9 +70,11 @@ public class MainView {
 
         chatInput.setPromptText("chat here.");
 
+        // set element event handlers
         addElementsHandlers();
     }
 
+    // events
     private void toggleConnectFormComponent() {
         connectForm.getChildren().setAll(
                 isServerMode ? serverModeConnectForm() : clientModeConnectForm()
@@ -80,14 +82,18 @@ public class MainView {
     }
 
     private void addElementsHandlers() {
-        String ipAddress = ipAddressInput.getText();
         serverStartButton.setOnAction(event -> startServer());
         serverStopButton.setOnAction(event -> stopServer());
 
         clientStartButton.setOnAction(event -> startClient());
-//        clientStartButton.setOnAction((event) -> connectionController.handleClientStart(ipAddress, port));
     }
 
+    // in common (client, server)
+    private void appendAppMessageConsole(String message) {
+        Platform.runLater(() -> appMessageConsole.appendText(message + "\n"));
+    }
+
+    // client
     private void startClient() {
         String ipAddress = ipAddressInput.getText();
         String port = portInput.getText();
@@ -95,18 +101,7 @@ public class MainView {
         connectionController.runClient(ipAddress, port);
     }
 
-    private void appendAppMessageConsole(String message) {
-        Platform.runLater(() -> appMessageConsole.appendText(message + "\n"));
-    }
-
-    private void stopServer() {
-        Response response = connectionController.stopServer();
-
-        if (response.status() == 200) {
-            appendAppMessageConsole(response.message());
-        }
-    }
-
+    // server
     private void startServer() {
         String port = portInput.getText();
         Response startResponse = connectionController.startServer(port);
@@ -118,6 +113,15 @@ public class MainView {
         appendAppMessageConsole(startResponse.message());
     }
 
+    private void stopServer() {
+        Response response = connectionController.stopServer();
+
+        if (response.status() == 200) {
+            appendAppMessageConsole(response.message());
+        }
+    }
+
+    // ui components
     private VBox consoleComponent() {
         VBox component = new VBox(10);
         component.getChildren().addAll(
