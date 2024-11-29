@@ -1,9 +1,6 @@
 package org.gosqo.tcpsocket;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -47,16 +44,29 @@ public class ClientSocketRunner implements Runnable {
 
         } catch (Exception e) {
             log.warning("클라이언트 에러: " + e.getMessage());
+            e.printStackTrace(new PrintStream(System.out));
+            appMessageHandler.accept("error while construct Socket: " + e.getMessage());
+
         }
     }
 
     public void close() {
         try {
-            socket.close();
-            transmitThread.interrupt();
-            receiveThread.interrupt();
+
+            if (socket != null) {
+                socket.close();
+            }
+
+            if (transmitThread != null) {
+                transmitThread.interrupt();
+            }
+
+            if (receiveThread != null) {
+                receiveThread.interrupt();
+            }
         } catch (IOException e) {
             log.warning("client socket close Error: " + e.getMessage());
+            appMessageHandler.accept("error while closing: " + e.getMessage());
         }
     }
 

@@ -1,5 +1,6 @@
 package org.gosqo.tcpsocket;
 
+import java.io.PrintStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -65,7 +66,7 @@ public class ConnectionController {
 
             server.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(new PrintStream(System.out));
             message = e.getMessage();
         }
 
