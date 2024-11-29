@@ -53,7 +53,7 @@ public class ClientSocketRunner implements Runnable {
     public void close() {
         try {
 
-            if (socket != null) {
+            if (socket != null && !socket.isClosed()) {
                 socket.close();
             }
 

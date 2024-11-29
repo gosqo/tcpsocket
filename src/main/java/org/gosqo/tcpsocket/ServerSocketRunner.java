@@ -55,18 +55,18 @@ public class ServerSocketRunner implements Runnable {
 
     public void close() {
         try {
-            if (serverSocket.isClosed()) {
-                throw new RuntimeException("Server's" + port + " port has been closed.");
-            }
 
             if (clientSocket != null && !clientSocket.isClosed()) {
                 clientSocket.close();
             }
+
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
             }
 
-            transmitThread.interrupt();
+            if (transmitThread != null) {
+                transmitThread.interrupt();
+            }
         } catch (IOException e) {
             log.warning("서버 종료 에러: " + e.getMessage());
         }
