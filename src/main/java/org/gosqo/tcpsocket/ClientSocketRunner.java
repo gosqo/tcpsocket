@@ -1,6 +1,7 @@
 package org.gosqo.tcpsocket;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,7 +34,7 @@ public class ClientSocketRunner implements Runnable {
         Thread.currentThread().setName("=Client Main Thread");
 
         try {
-            socket = new Socket(host, port);
+            socket = new Socket(InetAddress.getByName(host), port);
 
             Socket finalSocket = socket;
             transmitThread = new Thread(() -> handleTransmit(finalSocket), "=Client Transmitter");

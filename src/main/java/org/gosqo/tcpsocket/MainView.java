@@ -54,7 +54,7 @@ public class MainView {
         serverStopButton = new Button("Stop Server");
 
         ipAddressInput.setPromptText("Enter server IP Address.");
-        ipAddressInput.setText("127.0.0.1");
+        ipAddressInput.setText("192.168.0.");
 
         portInput.setPromptText("Enter the server port.");
         portInput.setText("8080");
