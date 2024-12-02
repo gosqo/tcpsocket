@@ -12,17 +12,17 @@ public class ConnectionController {
     private final ClientSocketRunner client;
 
     public ConnectionController(
-            Consumer<String> receivedMessageHandler
+            Consumer<String> chatMessageHandler
             , Consumer<String> appMessageHandler
 
     ) {
         this.client = new ClientSocketRunner(
-                receivedMessageHandler
+                chatMessageHandler
                 , appMessageHandler
         );
 
         this.server = new ServerSocketRunner(
-                receivedMessageHandler
+                chatMessageHandler
                 , appMessageHandler
         );
     }

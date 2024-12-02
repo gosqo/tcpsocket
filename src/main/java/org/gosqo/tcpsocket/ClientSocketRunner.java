@@ -3,6 +3,7 @@ package org.gosqo.tcpsocket;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.time.LocalDateTime;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -13,19 +14,20 @@ public class ClientSocketRunner implements Runnable {
     private static final Logger log = Logger.getLogger("ClientSocketRunner");
 
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
-    private final Consumer<String> receivedMessageHandler;
+    private final Consumer<String> chatMessageHandler;
     private final Consumer<String> appMessageHandler;
     String host;
     int port;
     private Thread transmitThread;
     private Thread receiveThread;
     private Socket socket;
+    private int communicateIndex;
 
     public ClientSocketRunner(
-            Consumer<String> receivedMessageHandler
+            Consumer<String> chatMessageHandler
             , Consumer<String> appMessageHandler
     ) {
-        this.receivedMessageHandler = receivedMessageHandler;
+        this.chatMessageHandler = chatMessageHandler;
         this.appMessageHandler = appMessageHandler;
     }
 
@@ -37,17 +39,18 @@ public class ClientSocketRunner implements Runnable {
             socket = new Socket(InetAddress.getByName(host), port);
 
             Socket finalSocket = socket;
+            communicateIndex = 0;
+
             transmitThread = new Thread(() -> handleTransmit(finalSocket), "=Client Transmitter");
             receiveThread = new Thread(() -> handleReceive(finalSocket), "=Client Receiver");
 
             transmitThread.start();
+            appMessageHandler.accept("Thread transmitter begin, target is " + host + ":" + port);
             receiveThread.start();
-
+            appMessageHandler.accept("Thread receiver begin, target is " + host + ":" + port);
         } catch (Exception e) {
-            log.warning("클라이언트 에러: " + e.getMessage());
             e.printStackTrace(new PrintStream(System.out));
-            appMessageHandler.accept("error while construct Socket: " + e.getMessage());
-
+            appMessageHandler.accept("Error while construct Socket: " + e.getMessage());
         }
     }
 
@@ -83,8 +86,17 @@ public class ClientSocketRunner implements Runnable {
                 String message = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
                 if (message != null) {
                     writer.println(message); // 서버로 메시지 전송
+                    chatMessageHandler.accept("%4d %s:%d (Me) [%s]: %s".formatted(
+                                    ++communicateIndex
+                                    , socket.getLocalAddress().toString()
+                                    , socket.getLocalPort()
+                                    , LocalDateTime.now().toString()
+                                    , message
+                            )
+                    );
                 }
             }
+            appMessageHandler.accept("Thread transmitter ended, target was " + host + ":" + port);
         } catch (IOException | InterruptedException e) {
             log.warning("클라이언트 입력 처리 에러: " + e.getMessage());
         }
@@ -95,14 +107,23 @@ public class ClientSocketRunner implements Runnable {
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
-                if (reader.ready()) { // 데이터가 준비된 경우만 읽기
-                    String finalReceived = reader.readLine();
-                    if (finalReceived == null) break; // null이면 스트림 종료
-                    receivedMessageHandler.accept("Server: " + finalReceived);
-                }
+//                if (reader.ready()) { // 데이터가 준비된 경우만 읽기
+                String finalReceived = reader.readLine();
+                if (finalReceived == null) break; // null이면 스트림 종료
+                chatMessageHandler.accept("%4d %s:%d (Remote) [%s]: %s".formatted(
+                                ++communicateIndex
+                                , socket.getRemoteSocketAddress().toString()
+                                , socket.getPort()
+                                , LocalDateTime.now().toString()
+                                , finalReceived
+                        )
+                );
+//                }
             }
+            socket.close();
+            appMessageHandler.accept("Thread receiver ended, target was " + host + ":" + port);
         } catch (IOException e) {
-            receivedMessageHandler.accept("Server Error: " + e.getMessage());
+            chatMessageHandler.accept("Server Error: " + e.getMessage());
         }
     }
 

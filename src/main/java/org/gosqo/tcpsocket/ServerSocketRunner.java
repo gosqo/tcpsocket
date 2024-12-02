@@ -15,18 +15,19 @@ import java.util.logging.Logger;
 public class ServerSocketRunner implements Runnable {
     private static final Logger log = Logger.getLogger("ServerSocketRunner");
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
-    private final Consumer<String> receivedMessageHandler;
+    private final Consumer<String> chatMessageHandler;
     private final Consumer<String> appMessageHandler;
     Socket clientSocket;
     ServerSocket serverSocket;
     private int port;
     private Thread receiveThread;
     private Thread transmitThread;
+
     public ServerSocketRunner(
-            Consumer<String> receivedMessageHandler
+            Consumer<String> chatMessageHandler
             , Consumer<String> appMessageHandler
     ) {
-        this.receivedMessageHandler = receivedMessageHandler;
+        this.chatMessageHandler = chatMessageHandler;
         this.appMessageHandler = appMessageHandler;
     }
 
@@ -117,7 +118,7 @@ public class ServerSocketRunner implements Runnable {
             String received;
 
             while ((received = reader.readLine()) != null) {
-                receivedMessageHandler.accept("Client: " + received);
+                chatMessageHandler.accept("Client: " + received);
             }
         } catch (IOException e) {
             appMessageHandler.accept("Client: " + e.getMessage());

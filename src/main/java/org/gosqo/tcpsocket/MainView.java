@@ -17,7 +17,7 @@ public class MainView {
     RadioButton serverModeButton, clientModeButton;
     TextArea chatConsole, appMessageConsole;
     private final ConnectionController connectionController = new ConnectionController(
-            this::appendReceivedMessage
+            this::appendChatMessage
             , this::appendAppMessage
     );
     TextField ipAddressInput, portInput, chatInput;
@@ -108,11 +108,11 @@ public class MainView {
 
         connectionController.sendMessage(message, isServerMode);
 
-        chatConsole.appendText("Me: " + message + "\n");
+//        chatConsole.appendText("Me: " + message + "\n");
 //        chatInput.clear();
     }
 
-    public void appendReceivedMessage(String message) {
+    public void appendChatMessage(String message) {
         Platform.runLater(() -> chatConsole.appendText(message + "\n"));
     }
 
