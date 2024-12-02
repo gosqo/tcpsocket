@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,7 @@ public class ClientSocketRunner implements Runnable {
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
     private final Consumer<String> chatMessageHandler;
     private final Consumer<String> appMessageHandler;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("k HH:mm:ss.SSS");
     String host;
     int port;
     private Thread transmitThread;
@@ -86,11 +88,11 @@ public class ClientSocketRunner implements Runnable {
                 String message = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
                 if (message != null) {
                     writer.println(message); // 서버로 메시지 전송
-                    chatMessageHandler.accept("%4d %s:%d (Me) [%s]: %s".formatted(
-                                    ++communicateIndex
+                    chatMessageHandler.accept("%04d %s:%d (Me) [%s]: %s".formatted(
+                                    communicateIndex++
                                     , socket.getLocalAddress().toString()
                                     , socket.getLocalPort()
-                                    , LocalDateTime.now().toString()
+                                    , LocalDateTime.now().format(dateTimeFormatter)
                                     , message
                             )
                     );
@@ -110,11 +112,10 @@ public class ClientSocketRunner implements Runnable {
 //                if (reader.ready()) { // 데이터가 준비된 경우만 읽기
                 String finalReceived = reader.readLine();
                 if (finalReceived == null) break; // null이면 스트림 종료
-                chatMessageHandler.accept("%4d %s:%d (Remote) [%s]: %s".formatted(
-                                ++communicateIndex
+                chatMessageHandler.accept("%04d %s (Remote) [%s]: %s".formatted(
+                                communicateIndex++
                                 , socket.getRemoteSocketAddress().toString()
-                                , socket.getPort()
-                                , LocalDateTime.now().toString()
+                                , LocalDateTime.now().format(dateTimeFormatter)
                                 , finalReceived
                         )
                 );

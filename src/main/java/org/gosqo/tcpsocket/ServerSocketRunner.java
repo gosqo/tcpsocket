@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -17,11 +19,13 @@ public class ServerSocketRunner implements Runnable {
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
     private final Consumer<String> chatMessageHandler;
     private final Consumer<String> appMessageHandler;
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("k HH:mm:ss.SSS");
     Socket clientSocket;
     ServerSocket serverSocket;
     private int port;
     private Thread receiveThread;
     private Thread transmitThread;
+    private int communicateIndex;
 
     public ServerSocketRunner(
             Consumer<String> chatMessageHandler
@@ -45,6 +49,8 @@ public class ServerSocketRunner implements Runnable {
 
         try {
             serverSocket = new ServerSocket(port);
+            communicateIndex = 0;
+
             log.info("Server is ready to communicate.");
         } catch (IOException e) {
             log.warning(e.getMessage());
@@ -90,7 +96,10 @@ public class ServerSocketRunner implements Runnable {
         transmitThread = new Thread(() -> handleTransmit(clientSocket), "=Server Transmitter");
 
         receiveThread.start();
+        appMessageHandler.accept("Thread receiver begin, target is " + clientSocket.getRemoteSocketAddress());
+
         transmitThread.start();
+        appMessageHandler.accept("Thread transmitter begin, target is " + clientSocket.getRemoteSocketAddress());
     }
 
     public void addMessageToQueue(String message) {
@@ -105,6 +114,14 @@ public class ServerSocketRunner implements Runnable {
                 String message = messageQueue.poll(500, TimeUnit.MILLISECONDS);
                 if (message != null) {
                     writer.println(message);
+                    chatMessageHandler.accept("%04d %s:%d (Me) [%s]: %s".formatted(
+                                    communicateIndex++
+                                    , serverSocket.getInetAddress().getHostAddress()
+                                    , serverSocket.getLocalPort()
+                                    , LocalDateTime.now().format(dateTimeFormatter)
+                                    , message
+                            )
+                    );
                 }
             }
         } catch (IOException | InterruptedException e) {
@@ -118,8 +135,22 @@ public class ServerSocketRunner implements Runnable {
             String received;
 
             while ((received = reader.readLine()) != null) {
-                chatMessageHandler.accept("Client: " + received);
+                chatMessageHandler.accept("%04d %s (Client) [%s]: %s".formatted(
+                                communicateIndex++
+                                , clientSocket.getRemoteSocketAddress().toString()
+                                , LocalDateTime.now().format(dateTimeFormatter)
+                                , received
+                        )
+                );
             }
+            clientSocket.close();
+            serverSocket.close();
+
+            appMessageHandler.accept("[%s] %s closed socket.".formatted(
+                            LocalDateTime.now().format(dateTimeFormatter)
+                            , clientSocket.getRemoteSocketAddress().toString()
+                    )
+            );
         } catch (IOException e) {
             appMessageHandler.accept("Client: " + e.getMessage());
         }
