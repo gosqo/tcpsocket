@@ -83,6 +83,7 @@ public class ServerSocketRunner implements Runnable {
         try {
             clientSocket = serverSocket.accept();
             log.info("클라이언트가 연결되었습니다: " + clientSocket.getRemoteSocketAddress());
+            appMessageHandler.accept("connected client: " + clientSocket.getRemoteSocketAddress());
 
             runCommunicate();
         } catch (IOException e) {
@@ -128,6 +129,8 @@ public class ServerSocketRunner implements Runnable {
                     );
                 }
             }
+
+            appMessageHandler.accept("Thread transmitter ended, target was " + clientSocket.getRemoteSocketAddress());
         } catch (IOException | InterruptedException e) {
             log.warning("서버 입력 핸들러 에러: " + e.getMessage());
         }
@@ -147,6 +150,9 @@ public class ServerSocketRunner implements Runnable {
                         )
                 );
             }
+
+            appMessageHandler.accept("Thread receiver ended, target was " + clientSocket.getRemoteSocketAddress());
+
             clientSocket.close();
             serverSocket.close();
 
