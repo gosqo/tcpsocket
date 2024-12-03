@@ -20,7 +20,6 @@ public class ConnectionController {
                 chatMessageHandler
                 , appMessageHandler
         );
-
         this.server = new ServerSocketRunner(
                 chatMessageHandler
                 , appMessageHandler
@@ -31,46 +30,42 @@ public class ConnectionController {
     Response startServer(String port) {
         // validation
         if (port == null || port.isBlank()) {
-            return new Response(400, "port cannot be blank." +
-                    "\n\tplease enter numbers set port.");
+            return new Response(400
+                    , "port cannot be blank."
+                    + "\n\tplease enter numbers set port.");
         }
 
-        // exception handling
         try {
             int portNumber = Integer.parseInt(port);
 
             server.setPort(portNumber);
         } catch (NumberFormatException e) {
-            return new Response(400, "port should be value of number." +
-                    "\n\tplease enter numbers set port.");
+            return new Response(400
+                    , "port should be value of number."
+                    + "\n\tplease enter numbers set port.");
         }
 
         // service
-        int status = 200;
-        String message = "Server is ready, waiting for client.";
-
         try {
             server.run();
         } catch (Exception e) {
-            status = 400;
-            message = "port " + server.getPort() + " is " + e.getMessage();
+            return new Response(400
+                    , "port " + server.getPort() + " is " + e.getMessage());
         }
 
-        return new Response(status, message);
+        return new Response(200
+                , "Server is ready, waiting for client.");
     }
 
     Response stopServer() {
-        String message = "Server has been stopped.";
-
         try {
-
             server.close();
         } catch (Exception e) {
             e.printStackTrace(new PrintStream(System.out));
-            message = e.getMessage();
+            return new Response(500, e.getMessage());
         }
 
-        return new Response(200, message);
+        return new Response(200, "Server has been stopped.");
     }
 
     Response makeServerListen() {
@@ -85,8 +80,6 @@ public class ConnectionController {
 
     // client
     void runClient(String ipAddress, String port) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-
         client.setHost(ipAddress);
         client.setPort(Integer.parseInt(port));
 
