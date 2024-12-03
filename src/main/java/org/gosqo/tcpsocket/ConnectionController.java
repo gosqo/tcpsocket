@@ -49,11 +49,11 @@ public class ConnectionController {
             server.run(); // new runnable thread
         } catch (Exception e) {
             return new Response(400
-                    , "port " + server.getPort() + " is " + e.getMessage());
+                    , "\nport " + server.getPort() + " is " + e.getMessage());
         }
 
         return new Response(200
-                , "Server is ready, waiting for client.");
+                , "\nServer is ready, waiting for client.");
     }
 
     Response stopServer() {
@@ -66,17 +66,17 @@ public class ConnectionController {
         }
 
         return new Response(200
-                , "Server has been stopped.\n");
+                , "\nServer has been stopped.");
     }
 
-    Response makeServerListen() {
+    void makeServerListen(Consumer<String> appMessageHandler) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         executor.execute(() -> {
-            server.listenTilEstablished();
-        });
+            appMessageHandler.accept(server.listenTilEstablished());
 
-        return new Response(200, "message");
+            executor.shutdown();
+        });
     }
 
     // client

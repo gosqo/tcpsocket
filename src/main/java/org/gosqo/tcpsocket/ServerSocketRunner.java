@@ -42,8 +42,6 @@ public class ServerSocketRunner implements Runnable {
 
     @Override
     public void run() {
-        Thread.currentThread().setName("=Server Main Thread");
-
         try {
             serverSocket = new ServerSocket(port);
             communicateIndex = 0;
@@ -83,16 +81,20 @@ public class ServerSocketRunner implements Runnable {
         return false;
     }
 
-    public void listenTilEstablished() {
+    public String listenTilEstablished() {
+        String message;
+
         try {
             clientSocket = serverSocket.accept();
-            log.info("클라이언트가 연결되었습니다: " + clientSocket.getRemoteSocketAddress());
-            appMessageHandler.accept("connected client: " + clientSocket.getRemoteSocketAddress());
+            message = "\nConnected to client: " + clientSocket.getRemoteSocketAddress();
+            log.info(message);
 
             runCommunicate();
         } catch (IOException e) {
-            log.warning("클라이언트 연결 에러: " + e.getMessage());
+            message = "Exception while accepting client: " + e.getMessage();
         }
+
+        return message;
     }
 
     public void runCommunicate() {
@@ -101,10 +103,10 @@ public class ServerSocketRunner implements Runnable {
         transmitThread = new Thread(() -> handleTransmit(clientSocket), "=Server Transmitter");
 
         receiveThread.start();
-        appMessageHandler.accept("Thread receiver begin, target is " + clientSocket.getRemoteSocketAddress());
+//        appMessageHandler.accept("Thread receiver begin, target is " + clientSocket.getRemoteSocketAddress());
 
         transmitThread.start();
-        appMessageHandler.accept("Thread transmitter begin, target is " + clientSocket.getRemoteSocketAddress());
+//        appMessageHandler.accept("Thread transmitter begin, target is " + clientSocket.getRemoteSocketAddress());
     }
 
     public boolean addMessageToQueue(String message) {
@@ -134,9 +136,9 @@ public class ServerSocketRunner implements Runnable {
                 }
             }
 
-            appMessageHandler.accept("Thread transmitter ended, target was " + clientSocket.getRemoteSocketAddress());
+//            appMessageHandler.accept("Thread transmitter ended, target was " + clientSocket.getRemoteSocketAddress());
         } catch (IOException | InterruptedException e) {
-            log.warning("서버 입력 핸들러 에러: " + e.getMessage());
+            log.warning(e.getMessage());
         }
     }
 
@@ -145,7 +147,7 @@ public class ServerSocketRunner implements Runnable {
             BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String received;
 
-            while ((received = reader.readLine()) != null) {
+            while ((received = reader.readLine()) != null) { // reader.readLine(): 대기 지점. 클라이언트 측에서 접속 해제 시 = null . while 문 탈출
                 chatMessageHandler.accept("%04d %s (Client) [%s]: %s".formatted(
                                 communicateIndex++
                                 , clientSocket.getRemoteSocketAddress().toString()
@@ -155,18 +157,18 @@ public class ServerSocketRunner implements Runnable {
                 );
             }
 
-            appMessageHandler.accept("Thread receiver ended, target was " + clientSocket.getRemoteSocketAddress());
+//            appMessageHandler.accept("Thread receiver ended, target was " + clientSocket.getRemoteSocketAddress());
 
             clientSocket.close();
             serverSocket.close();
 
-            appMessageHandler.accept("[%s] %s closed socket.".formatted(
+            appMessageHandler.accept("%n[%s] client %s socket closed.".formatted(
                             LocalDateTime.now().format(dateTimeFormatter)
                             , clientSocket.getRemoteSocketAddress().toString()
                     )
             );
-        } catch (IOException e) {
-            log.warning("Client: " + e.getMessage());
+        } catch (IOException e) { // 서버 측에서 close() 호출 시 this.clientSocket.close() 하며 예외 발생. 로깅
+            log.warning(e.getMessage());
         }
     }
 }

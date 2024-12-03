@@ -132,11 +132,13 @@ public class MainView {
         String port = portInput.getText();
         Response startResponse = connectionController.startServer(port);
 
-        if (startResponse.status() == 200) {
-            Response listenResponse = connectionController.makeServerListen();
-        }
-
         appendAppMessage(startResponse.message());
+
+        if (startResponse.status() == 200) {
+            connectionController.makeServerListen(this::appendAppMessage);
+
+//            appendAppMessage(listenResponse.message());
+        }
     }
 
     private void stopServer() {
