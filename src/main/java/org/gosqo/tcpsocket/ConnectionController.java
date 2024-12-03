@@ -87,6 +87,10 @@ public class ConnectionController {
         client.run();
     }
 
+    void disconnect(Consumer<String> appMessageHandler) {
+        appMessageHandler.accept(client.close());
+    }
+
     // in common(client, server)
     Response sendMessage(String message, boolean isServer) {
         boolean serverSent, clientSent;

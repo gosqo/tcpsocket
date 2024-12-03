@@ -75,7 +75,7 @@ public class ServerSocketRunner implements Runnable {
             return true;
         } catch (IOException e) {
             e.printStackTrace(new PrintStream(System.out));
-            log.warning("서버 종료 에러: " + e.getMessage());
+            log.warning("Exception while closing server: " + e.getMessage());
         }
 
         return false;

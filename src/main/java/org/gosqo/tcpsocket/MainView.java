@@ -21,7 +21,7 @@ public class MainView {
             , this::appendAppMessage
     );
     TextField ipAddressInput, portInput, chatInput;
-    Button serverStartButton, clientStartButton, chatSendButton, serverStopButton;
+    Button serverStartButton, clientStartButton, chatSendButton, serverStopButton, clientDisconnectButton;
     ToggleGroup modeToggleGroup;
 
     VBox connectForm;
@@ -50,8 +50,9 @@ public class MainView {
         ipAddressInput = new TextField();
         portInput = new TextField();
         serverStartButton = new Button("Start Server");
-        clientStartButton = new Button("Join to Chat");
         serverStopButton = new Button("Stop Server");
+        clientStartButton = new Button("Join to Chat");
+        clientDisconnectButton = new Button("Disconnect");
 
         ipAddressInput.setPromptText("Enter server IP Address.");
         ipAddressInput.setText("192.168.0.");
@@ -90,6 +91,7 @@ public class MainView {
         serverStopButton.setOnAction(event -> stopServer());
 
         clientStartButton.setOnAction(event -> startClient());
+        clientDisconnectButton.setOnAction(event -> disconnect());
 
         chatSendButton.setOnAction(event -> sendMessage());
     }
@@ -125,6 +127,10 @@ public class MainView {
         String port = portInput.getText();
 
         connectionController.runClient(ipAddress, port);
+    }
+
+    private void disconnect() {
+        connectionController.disconnect(this::appendAppMessage);
     }
 
     // server
@@ -177,11 +183,17 @@ public class MainView {
     }
 
     private VBox clientModeConnectForm() {
+        HBox buttons = new HBox(10);
+        buttons.getChildren().addAll(
+                clientStartButton
+                , clientDisconnectButton
+        );
+
         VBox component = new VBox(10);
         component.getChildren().addAll(
                 ipAddressInput
                 , portInput
-                , clientStartButton
+                , buttons
         );
 
         return component;

@@ -55,7 +55,13 @@ public class ClientSocketRunner implements Runnable {
         }
     }
 
-    public void close() {
+    public String close() {
+        String message;
+
+        if (socket == null || socket.isClosed()) {
+            return "there's no activated socket. use it after 'Joining to chat'";
+        }
+
         try {
 
             if (socket != null && !socket.isClosed()) {
@@ -69,10 +75,14 @@ public class ClientSocketRunner implements Runnable {
             if (receiveThread != null) {
                 receiveThread.interrupt();
             }
+
+            message = "\nDisconnected. Client socket closed.";
         } catch (IOException e) {
-            log.warning("Client socket close Error: " + e.getMessage());
-            appMessageHandler.accept("\nError while closing: " + e.getMessage());
+            e.printStackTrace(new PrintStream(System.out));
+            message = e.getMessage();
         }
+
+        return message;
     }
 
     public boolean addMessageToQueue(String message) {
@@ -130,7 +140,7 @@ public class ClientSocketRunner implements Runnable {
                     LocalDateTime.now().format(dateTimeFormatter)
             ));
         } catch (IOException e) {
-            chatMessageHandler.accept(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
