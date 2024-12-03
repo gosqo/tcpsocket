@@ -35,10 +35,9 @@ public class ClientSocketRunner implements Runnable {
 
     @Override
     public void run() {
-        Thread.currentThread().setName("=Client Main Thread");
-
         try {
             socket = new Socket(InetAddress.getByName(host), port);
+            appMessageHandler.accept("\nSocket connected to: " + socket.getRemoteSocketAddress());
 
             Socket finalSocket = socket;
             communicateIndex = 0;
@@ -47,9 +46,9 @@ public class ClientSocketRunner implements Runnable {
             receiveThread = new Thread(() -> handleReceive(finalSocket), "=Client Receiver");
 
             transmitThread.start();
-            appMessageHandler.accept("Thread transmitter begin, target is " + host + ":" + port);
+//            appMessageHandler.accept("Thread transmitter begin, target is " + host + ":" + port);
             receiveThread.start();
-            appMessageHandler.accept("Thread receiver begin, target is " + host + ":" + port);
+//            appMessageHandler.accept("Thread receiver begin, target is " + host + ":" + port);
         } catch (Exception e) {
             e.printStackTrace(new PrintStream(System.out));
             appMessageHandler.accept("Error while construct Socket: " + e.getMessage());
@@ -71,8 +70,8 @@ public class ClientSocketRunner implements Runnable {
                 receiveThread.interrupt();
             }
         } catch (IOException e) {
-            log.warning("client socket close Error: " + e.getMessage());
-            appMessageHandler.accept("error while closing: " + e.getMessage());
+            log.warning("Client socket close Error: " + e.getMessage());
+            appMessageHandler.accept("\nError while closing: " + e.getMessage());
         }
     }
 
@@ -102,9 +101,9 @@ public class ClientSocketRunner implements Runnable {
                     );
                 }
             }
-            appMessageHandler.accept("Thread transmitter ended, target was " + host + ":" + port);
+//            appMessageHandler.accept("Thread transmitter ended, target was " + host + ":" + port);
         } catch (IOException | InterruptedException e) {
-            log.warning("클라이언트 입력 처리 에러: " + e.getMessage());
+            log.warning(e.getMessage());
         }
     }
 
@@ -126,9 +125,12 @@ public class ClientSocketRunner implements Runnable {
 //                }
             }
             socket.close();
-            appMessageHandler.accept("Thread receiver ended, target was " + host + ":" + port);
+//            appMessageHandler.accept("Thread receiver ended, target was " + host + ":" + port);
+            appMessageHandler.accept("%n[%s] Socket closed.".formatted(
+                    LocalDateTime.now().format(dateTimeFormatter)
+            ));
         } catch (IOException e) {
-            chatMessageHandler.accept("Server Error: " + e.getMessage());
+            chatMessageHandler.accept(e.getMessage());
         }
     }
 
