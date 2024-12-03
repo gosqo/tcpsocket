@@ -71,7 +71,7 @@ public class ServerSocketRunner implements Runnable {
                 serverSocket.close();
             }
 
-            if (transmitThread != null) {
+            if (transmitThread.isAlive()) {
                 transmitThread.interrupt();
             }
         } catch (IOException e) {
