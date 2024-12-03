@@ -76,8 +76,12 @@ public class ClientSocketRunner implements Runnable {
         }
     }
 
-    public void addMessageToQueue(String message) {
-        messageQueue.offer(message);
+    public boolean addMessageToQueue(String message) {
+        if (this.socket != null && !socket.isClosed()) {
+            return messageQueue.offer(message);
+        }
+
+        return false;
     }
 
     private void handleTransmit(Socket socket) {

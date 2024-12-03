@@ -95,21 +95,34 @@ public class ConnectionController {
 
     // in common(client, server)
     Response sendMessage(String message, boolean isServer) {
-        int status = 200;
-        String responseMessage = "message transmitted.";
-
+        boolean serverSent, clientSent;
         try {
             if (isServer) {
-                server.addMessageToQueue(message);
-            } else {
-                client.addMessageToQueue(message);
-            }
-        } catch (RuntimeException e) {
-            status = 500;
-            responseMessage = "something went wrong.";
-        }
+                serverSent = server.addMessageToQueue(message);
 
-        return new Response(200, responseMessage);
+                if (!serverSent) {
+                    return new Response(500
+                            , "Cannot add message to Queue, " +
+                            "client socket may not constructed or closed.");
+                }
+
+                return new Response(200
+                        , "message added to Queue");
+            }
+
+            clientSent = client.addMessageToQueue(message);
+
+            if (!clientSent) {
+                return new Response(500
+                        , "Cannot add message to Queue, " +
+                        "client socket may not constructed or closed.");
+            }
+
+            return new Response(200, "message added to Queue");
+        } catch (RuntimeException e) {
+            return new Response(500
+                    , e.getMessage()); // while adding message to messageQueue
+        }
     }
 
     void stopOnCloseStage(boolean isServer) {

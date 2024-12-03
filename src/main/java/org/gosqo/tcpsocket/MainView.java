@@ -106,10 +106,13 @@ public class MainView {
     private void sendMessage() {
         String message = chatInput.getText();
 
-        connectionController.sendMessage(message, isServerMode);
+        Response response = connectionController.sendMessage(message, isServerMode);
 
-//        chatConsole.appendText("Me: " + message + "\n");
-//        chatInput.clear();
+        if (response.status() != 200) {
+            appendAppMessage(response.message());
+        }
+
+//        chatInput.clear(); // uncomment if needed.
     }
 
     public void appendChatMessage(String message) {

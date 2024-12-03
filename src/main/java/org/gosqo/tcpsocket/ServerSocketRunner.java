@@ -102,8 +102,12 @@ public class ServerSocketRunner implements Runnable {
         appMessageHandler.accept("Thread transmitter begin, target is " + clientSocket.getRemoteSocketAddress());
     }
 
-    public void addMessageToQueue(String message) {
-        messageQueue.offer(message);
+    public boolean addMessageToQueue(String message) {
+        if (clientSocket != null && !clientSocket.isClosed()) {
+            return messageQueue.offer(message);
+        }
+
+        return false;
     }
 
     private void handleTransmit(Socket clientSocket) {
