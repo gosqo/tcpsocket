@@ -1,9 +1,6 @@
 package org.gosqo.tcpsocket;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
@@ -60,11 +57,11 @@ public class ServerSocketRunner implements Runnable {
         log.info("server is listening ...");
     }
 
-    public void close() {
+    public boolean close() {
         try {
 
             if (clientSocket != null && !clientSocket.isClosed()) {
-                clientSocket.close();
+                clientSocket.close(); // 클라이언트 측 앱 상에서 클라이언트 송수신 스레드 종료.
             }
 
             if (serverSocket != null && !serverSocket.isClosed()) {
@@ -74,9 +71,14 @@ public class ServerSocketRunner implements Runnable {
             if (transmitThread.isAlive()) {
                 transmitThread.interrupt();
             }
+
+            return true;
         } catch (IOException e) {
+            e.printStackTrace(new PrintStream(System.out));
             log.warning("서버 종료 에러: " + e.getMessage());
         }
+
+        return false;
     }
 
     public void listenTilEstablished() {

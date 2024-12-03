@@ -1,6 +1,5 @@
 package org.gosqo.tcpsocket;
 
-import java.io.PrintStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -47,7 +46,7 @@ public class ConnectionController {
 
         // service
         try {
-            server.run();
+            server.run(); // new runnable thread
         } catch (Exception e) {
             return new Response(400
                     , "port " + server.getPort() + " is " + e.getMessage());
@@ -58,14 +57,16 @@ public class ConnectionController {
     }
 
     Response stopServer() {
-        try {
-            server.close();
-        } catch (Exception e) {
-            e.printStackTrace(new PrintStream(System.out));
-            return new Response(500, e.getMessage());
+        boolean isClosed = server.close();
+
+        if (!isClosed) {
+            return new Response(500
+                    , "exception occurred on closing server.\n"
+                    + "please try again later.");
         }
 
-        return new Response(200, "Server has been stopped.");
+        return new Response(200
+                , "Server has been stopped.\n");
     }
 
     Response makeServerListen() {

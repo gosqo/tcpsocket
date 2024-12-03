@@ -142,9 +142,7 @@ public class MainView {
     private void stopServer() {
         Response response = connectionController.stopServer();
 
-        if (response.status() == 200) {
-            appendAppMessage(response.message());
-        }
+        appendAppMessage(response.message());
     }
 
     // ui components
