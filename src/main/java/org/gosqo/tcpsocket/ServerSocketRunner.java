@@ -60,6 +60,8 @@ public class ServerSocketRunner implements Runnable {
     public boolean close() {
         try {
 
+            // handleReceive.reader.readLine 대기 상태에서 clientSocket 종료로
+            // IOException 발생으로 receiveThread 종료 됨.
             if (clientSocket != null && !clientSocket.isClosed()) {
                 clientSocket.close(); // 클라이언트 측 앱 상에서 클라이언트 송수신 스레드 종료.
             }
@@ -68,7 +70,7 @@ public class ServerSocketRunner implements Runnable {
                 serverSocket.close();
             }
 
-            if (transmitThread.isAlive()) {
+            if (transmitThread != null && transmitThread.isAlive()) {
                 transmitThread.interrupt();
             }
 
@@ -164,7 +166,7 @@ public class ServerSocketRunner implements Runnable {
                     )
             );
         } catch (IOException e) {
-            appMessageHandler.accept("Client: " + e.getMessage());
+            log.warning("Client: " + e.getMessage());
         }
     }
 }
