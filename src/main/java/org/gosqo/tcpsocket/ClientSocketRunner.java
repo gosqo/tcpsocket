@@ -17,7 +17,7 @@ public class ClientSocketRunner implements Runnable {
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
     private final Consumer<String> chatMessageHandler;
     private final Consumer<String> appMessageHandler;
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("k HH:mm:ss.SSS");
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     String host;
     int port;
     private Thread transmitThread;
