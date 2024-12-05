@@ -1,8 +1,10 @@
 package org.gosqo.tcpsocket;
 
 import java.io.*;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,7 +39,15 @@ public class ClientSocketRunner implements Runnable {
     @Override
     public void run() {
         try {
-            socket = new Socket(InetAddress.getByName(host), port);
+            if (this.socket != null && !socket.isClosed()) {
+                appMessageHandler.accept("Socket is running on " + socket.getLocalPort());
+
+                return;
+            }
+
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(host, port), 500);
+
             appMessageHandler.accept("\nSocket connected to: " + socket.getRemoteSocketAddress());
 
             Socket finalSocket = socket;
@@ -52,7 +62,20 @@ public class ClientSocketRunner implements Runnable {
 //            appMessageHandler.accept("Thread receiver begin, target is " + host + ":" + port);
         } catch (Exception e) {
             e.printStackTrace(new PrintStream(System.out));
-            appMessageHandler.accept("Error while construct Socket: " + e.getMessage());
+
+            String appMessage;
+            socket = null;
+
+            if (e instanceof UnknownHostException) {
+                appMessage = "unknown host " + e.getMessage();
+            } else if (e instanceof SocketTimeoutException) {
+                appMessage = e.getMessage() + ".\n\tServer seems not running. "
+                        + "If it's running, Please check address and port";
+            } else {
+                appMessage = e.getMessage();
+            }
+
+            appMessageHandler.accept("Error while construct Socket: " + appMessage);
         }
     }
 
