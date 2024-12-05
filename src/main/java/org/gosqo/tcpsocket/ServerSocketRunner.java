@@ -176,6 +176,22 @@ public class ServerSocketRunner implements Runnable {
             );
         } catch (IOException e) { // 서버 측에서 close() 호출 시 this.clientSocket.close() 하며 예외 발생. 로깅
             log.warning(e.getMessage());
+
+            try {
+                clientSocket.close();
+                serverSocket.close();
+            } catch (IOException eOnClose) {
+                eOnClose.printStackTrace(new PrintStream(System.out));
+            }
+
+            transmitThread.interrupt();
+
+            appMessageHandler.accept("%n[%s] Exception from client %s %s".formatted(
+                            LocalDateTime.now().format(dateTimeFormatter)
+                            , clientSocket.getRemoteSocketAddress().toString()
+                            , e.getMessage()
+                    )
+            );
         }
     }
 }
