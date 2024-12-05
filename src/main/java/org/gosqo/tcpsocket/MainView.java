@@ -120,6 +120,7 @@ public class MainView {
         chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::enterKeyFireSendButton);
 //        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::lineFeed);
         chatSendButton.setOnAction(event -> sendMessage());
+        chatSendButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireSendButton);
     }
 
     private void enterKeyFireConnectButton(KeyEvent event) {
