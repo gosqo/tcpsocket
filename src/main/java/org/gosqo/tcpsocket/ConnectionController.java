@@ -49,7 +49,7 @@ public class ConnectionController {
             server.run(); // new runnable thread
         } catch (Exception e) {
             return new Response(400
-                    , "\nport " + server.getPort() + " is " + e.getMessage());
+                    , "port " + server.getPort() + " is " + e.getMessage());
         }
 
         return new Response(200
@@ -92,6 +92,42 @@ public class ConnectionController {
     }
 
     // in common(client, server)
+    void showHex(boolean isServer) {
+        if (isServer) {
+            server.setShowHex(true);
+            return;
+        }
+
+        client.setShowHex(true);
+    }
+
+    void disableShowHex(boolean isServer) {
+        if (isServer) {
+            server.setShowHex(false);
+            return;
+        }
+
+        client.setShowHex(false);
+    }
+
+    void enterHex(boolean isServer) {
+        if (isServer) {
+            server.setEnterHex(true);
+            return;
+        }
+
+        client.setEnterHex(true);
+    }
+
+    void disableEnterHex(boolean isServer) {
+        if (isServer) {
+            server.setEnterHex(false);
+            return;
+        }
+
+        client.setEnterHex(false);
+    }
+
     Response sendMessage(String message, boolean isServer) {
         boolean serverSent, clientSent;
         try {

@@ -24,6 +24,8 @@ public class ServerSocketRunner implements Runnable {
     private Thread receiveThread;
     private Thread transmitThread;
     private int communicateIndex;
+    private boolean showHex;
+    private boolean enterHex;
 
     public ServerSocketRunner(
             Consumer<String> chatMessageHandler
@@ -39,6 +41,18 @@ public class ServerSocketRunner implements Runnable {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public boolean isShowHex() {
+        return showHex;
+    }
+
+    public void setShowHex(boolean showHex) {
+        this.showHex = showHex;
+    }
+
+    public void setEnterHex(boolean enterHex) {
+        this.enterHex = enterHex;
     }
 
     @Override
@@ -120,15 +134,27 @@ public class ServerSocketRunner implements Runnable {
             PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
 
             while (!serverSocket.isClosed() && !Thread.currentThread().isInterrupted()) {
-                String message = messageQueue.poll(500, TimeUnit.MILLISECONDS);
-                if (message != null) {
-                    writer.println(message);
+                final String entered = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
+
+                if (entered != null) {
+
+                    try {
+                        final String toSend = convertIfEnterHex(entered);
+
+                        writer.println(toSend); // 서버로 메시지 전송
+                    } catch (IllegalArgumentException e) {
+                        appMessageHandler.accept(e.getMessage());
+                        continue;
+                    }
+
+                    final String toShow = decideHowToShow(entered);
+
                     chatMessageHandler.accept("%04d %s:%d (Me) [%s]: %s".formatted(
                                     communicateIndex++
                                     , serverSocket.getInetAddress().getHostAddress()
                                     , serverSocket.getLocalPort()
                                     , LocalDateTime.now().format(dateTimeFormatter)
-                                    , message
+                                    , toShow
                             )
                     );
                 }
@@ -150,11 +176,13 @@ public class ServerSocketRunner implements Runnable {
             String received;
 
             while ((received = reader.readLine()) != null) { // reader.readLine(): 대기 지점. 클라이언트 측에서 접속 해제 시 = null . while 문 탈출
+                String toShow = convertIfShowHex(received);
+
                 chatMessageHandler.accept("%04d %s (Client) [%s]: %s".formatted(
                                 communicateIndex++
                                 , clientSocket.getRemoteSocketAddress().toString()
                                 , LocalDateTime.now().format(dateTimeFormatter)
-                                , received
+                                , toShow
                         )
                 );
             }
@@ -186,5 +214,22 @@ public class ServerSocketRunner implements Runnable {
                     )
             );
         }
+    }
+
+    private String decideHowToShow(String entered) {
+        final String toShow;
+
+        if (enterHex && showHex) return HexConverter.separateEach2(entered);
+        if (enterHex && !showHex) return HexConverter.hexStringTo8859Encoded(entered);
+        if (!enterHex && showHex) return HexConverter.stringToHex(entered);
+        return entered;
+    }
+
+    private String convertIfEnterHex(String message) {
+        return enterHex ? HexConverter.hexStringTo8859Encoded(message) : message;
+    }
+
+    private String convertIfShowHex(String message) {
+        return showHex ? HexConverter.stringToHex(message) : message;
     }
 }

@@ -16,8 +16,9 @@ public class MainView {
 
     private static final Logger log = Logger.getLogger("MainView");
     boolean isServerMode = false;
-    Label modeSelectionLabel;
+    Label modeSelectionLabel, hexLabel;
     RadioButton serverModeButton, clientModeButton;
+    CheckBox showHex, enterHex;
     TextArea chatConsole, appMessageConsole, chatInput;
     private final ConnectionController connectionController = new ConnectionController(
             this::appendChatMessage
@@ -27,10 +28,13 @@ public class MainView {
     Button serverStartButton, clientStartButton, chatSendButton, serverStopButton, clientDisconnectButton;
     ToggleGroup modeToggleGroup;
 
-    VBox connectForm, consoleComponent;
+    VBox connectForm, consoleComponent, modeComponent, connectComponent, hexComponent;
+    HBox modeButtons, controlBox, chatFormComponent;
 
     private void initElements() {
         // mode selection
+        modeComponent = new VBox(10);
+        modeButtons = new HBox(10);
         modeSelectionLabel = new Label("Select a mode as");
         modeToggleGroup = new ToggleGroup();
         clientModeButton = new RadioButton("Client");
@@ -47,6 +51,9 @@ public class MainView {
                     toggleConnectFormComponent();
                 }
         );
+
+        modeButtons.getChildren().addAll(clientModeButton, serverModeButton);
+        modeComponent.getChildren().addAll(modeSelectionLabel, modeButtons);
 
         // connect form
         connectForm = new VBox(10);
@@ -65,6 +72,20 @@ public class MainView {
 
         connectForm.getChildren().setAll(clientModeConnectForm());
 
+        // hex component
+        hexComponent = new VBox(10);
+        hexLabel = new Label("Hexadecimal");
+        showHex = new CheckBox("Show in Hex");
+        enterHex = new CheckBox("Enter in Hex");
+
+        hexComponent.getChildren().addAll(hexLabel, showHex, enterHex);
+
+        // connect component ( mode selection + connect form)
+        connectComponent = new VBox(10, modeComponent, connectForm);
+
+        // control box (connect component + hex component
+        controlBox = new HBox(20, connectComponent, hexComponent);
+
         // consoles
         consoleComponent = new VBox(10);
         appMessageConsole = new TextArea();
@@ -79,20 +100,23 @@ public class MainView {
         chatConsole.setPromptText("sent/received chat appears here.");
         chatConsole.setEditable(false);
         chatConsole.setFocusTraversable(false);
+        VBox.setVgrow(chatConsole, Priority.ALWAYS);
 
         chatInput.setPromptText("chat here.");
         chatInput.setPrefHeight(64);
 
-        VBox.setVgrow(chatConsole, Priority.ALWAYS);
+        chatSendButton.setMinWidth(48);
+        chatFormComponent = new HBox(10, chatInput, chatSendButton);
+        HBox.setHgrow(chatInput, Priority.ALWAYS);
 
         consoleComponent.getChildren().addAll(
                 appMessageConsole
                 , chatConsole
-                , chatInput
-                , chatSendButton
+                , chatFormComponent
         );
         // set element event handlers
         setButtonsOnAction();
+        setCheckBoxEvent();
         addKeyEventHandlers();
     }
 
@@ -131,6 +155,26 @@ public class MainView {
         clientDisconnectButton.setOnAction(event -> disconnect());
 
         chatSendButton.setOnAction(event -> sendMessage());
+    }
+
+    private void setCheckBoxEvent() {
+        showHex.setOnAction(event -> {
+            if (showHex.isSelected()) {
+                connectionController.showHex(isServerMode);
+                return;
+            }
+
+            connectionController.disableShowHex(isServerMode);
+        });
+
+        enterHex.setOnAction(event -> {
+            if (enterHex.isSelected()) {
+                connectionController.enterHex(isServerMode);
+                return;
+            }
+
+            connectionController.disableEnterHex(isServerMode);
+        });
     }
 
     private void enterKeyFireConnectButton(KeyEvent event) {
@@ -299,8 +343,7 @@ public class MainView {
 
         layout.setPadding(new Insets(20.0));
         layout.getChildren().addAll(
-                modeSelectionComponent()
-                , connectForm
+                controlBox
                 , consoleComponent
         );
 

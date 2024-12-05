@@ -23,6 +23,30 @@ class HexTest {
     }
 
     @Test
+    void splitEach2() {
+        String obj = "ffeeffeeffeeffee";
+
+        StringBuilder ret = new StringBuilder();
+
+        int length = obj.length();
+
+        if (length % 2 != 0) {
+            throw new IllegalArgumentException("cannot pair in 2digit hexadecimal");
+        }
+
+        for (int i = 0; i < length; i = i + 2) {
+            char each0 = obj.charAt(i);
+            char each1 = obj.charAt(i + 1);
+
+            ret.append(each0)
+                    .append(each1)
+                    .append(" ");
+        }
+
+        System.out.println(ret);
+    }
+
+    @Test
     void hexIntoString() { // charset: ISO_8859_1
         String s = "fffe";
         byte[] bytes = hexStringToByteArray(s);
