@@ -57,9 +57,7 @@ public class ClientSocketRunner implements Runnable {
             receiveThread = new Thread(() -> handleReceive(finalSocket), "=Client Receiver");
 
             transmitThread.start();
-//            appMessageHandler.accept("Thread transmitter begin, target is " + host + ":" + port);
             receiveThread.start();
-//            appMessageHandler.accept("Thread receiver begin, target is " + host + ":" + port);
         } catch (Exception e) {
             e.printStackTrace(new PrintStream(System.out));
 
@@ -135,7 +133,6 @@ public class ClientSocketRunner implements Runnable {
                     );
                 }
             }
-//            appMessageHandler.accept("Thread transmitter ended, target was " + host + ":" + port);
         } catch (IOException | InterruptedException e) {
             log.warning(e.getMessage());
         }
@@ -151,7 +148,6 @@ public class ClientSocketRunner implements Runnable {
             );
 
             while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
-//                if (reader.ready()) { // 데이터가 준비된 경우만 읽기
                 String finalReceived = reader.readLine();
                 if (finalReceived == null) break; // null이면 스트림 종료
                 chatMessageHandler.accept("%04d %s (Remote) [%s]: %s".formatted(
@@ -161,10 +157,8 @@ public class ClientSocketRunner implements Runnable {
                                 , finalReceived
                         )
                 );
-//                }
             }
             socket.close();
-//            appMessageHandler.accept("Thread receiver ended, target was " + host + ":" + port);
             appMessageHandler.accept("%n[%s] Socket closed.".formatted(
                     LocalDateTime.now().format(dateTimeFormatter)
             ));

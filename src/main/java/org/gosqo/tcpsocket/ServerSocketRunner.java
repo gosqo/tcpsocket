@@ -104,10 +104,7 @@ public class ServerSocketRunner implements Runnable {
         transmitThread = new Thread(() -> handleTransmit(clientSocket), "=Server Transmitter");
 
         receiveThread.start();
-//        appMessageHandler.accept("Thread receiver begin, target is " + clientSocket.getRemoteSocketAddress());
-
         transmitThread.start();
-//        appMessageHandler.accept("Thread transmitter begin, target is " + clientSocket.getRemoteSocketAddress());
     }
 
     public boolean addMessageToQueue(String message) {
@@ -136,8 +133,6 @@ public class ServerSocketRunner implements Runnable {
                     );
                 }
             }
-
-//            appMessageHandler.accept("Thread transmitter ended, target was " + clientSocket.getRemoteSocketAddress());
         } catch (IOException | InterruptedException e) {
             log.warning(e.getMessage());
         }
@@ -163,8 +158,6 @@ public class ServerSocketRunner implements Runnable {
                         )
                 );
             }
-
-//            appMessageHandler.accept("Thread receiver ended, target was " + clientSocket.getRemoteSocketAddress());
 
             clientSocket.close();
             serverSocket.close();
