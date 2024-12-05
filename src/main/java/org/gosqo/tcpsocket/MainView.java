@@ -103,16 +103,45 @@ public class MainView {
     }
 
     private void addElementsHandlers() {
+        ipAddressInput.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
+        portInput.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
+
         serverStartButton.setOnAction(event -> startServer());
+        serverStartButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
         serverStopButton.setOnAction(event -> stopServer());
+        serverStopButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireDisconnectButton);
 
         clientStartButton.setOnAction(event -> startClient());
+        clientStartButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
         clientDisconnectButton.setOnAction(event -> disconnect());
+        clientDisconnectButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireDisconnectButton);
 
         chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::makeTabFocusNextComponent);
         chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::enterKeyFireSendButton);
 //        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::lineFeed);
         chatSendButton.setOnAction(event -> sendMessage());
+    }
+
+    private void enterKeyFireConnectButton(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
+            if (isServerMode) {
+                serverStartButton.fire();
+                return;
+            }
+
+            clientStartButton.fire();
+        }
+    }
+
+    private void enterKeyFireDisconnectButton(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
+            if (isServerMode) {
+                serverStopButton.fire();
+                return;
+            }
+
+            clientDisconnectButton.fire();
+        }
     }
 
     private void makeTabFocusNextComponent(KeyEvent event) {
