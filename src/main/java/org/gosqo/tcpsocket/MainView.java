@@ -92,7 +92,8 @@ public class MainView {
                 , chatSendButton
         );
         // set element event handlers
-        addElementsHandlers();
+        setButtonsOnAction();
+        addKeyEventHandlers();
     }
 
     // events
@@ -102,25 +103,34 @@ public class MainView {
         );
     }
 
-    private void addElementsHandlers() {
+    private void addKeyEventHandlers() {
         ipAddressInput.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
+
         portInput.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
 
-        serverStartButton.setOnAction(event -> startServer());
         serverStartButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
-        serverStopButton.setOnAction(event -> stopServer());
+
         serverStopButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireDisconnectButton);
 
-        clientStartButton.setOnAction(event -> startClient());
         clientStartButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
-        clientDisconnectButton.setOnAction(event -> disconnect());
+
         clientDisconnectButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireDisconnectButton);
 
         chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::makeTabFocusNextComponent);
         chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::enterKeyFireSendButton);
 //        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::lineFeed);
-        chatSendButton.setOnAction(event -> sendMessage());
+
         chatSendButton.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireSendButton);
+    }
+
+    private void setButtonsOnAction() {
+        serverStartButton.setOnAction(event -> startServer());
+        serverStopButton.setOnAction(event -> stopServer());
+
+        clientStartButton.setOnAction(event -> startClient());
+        clientDisconnectButton.setOnAction(event -> disconnect());
+
+        chatSendButton.setOnAction(event -> sendMessage());
     }
 
     private void enterKeyFireConnectButton(KeyEvent event) {
