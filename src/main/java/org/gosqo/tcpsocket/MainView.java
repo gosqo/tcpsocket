@@ -111,7 +111,7 @@ public class MainView {
 
         chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::makeTabFocusNextComponent);
         chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::enterKeyFireSendButton);
-        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::lineFeed);
+//        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::lineFeed);
         chatSendButton.setOnAction(event -> sendMessage());
     }
 
