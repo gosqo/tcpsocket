@@ -3,6 +3,7 @@ package org.gosqo.tcpsocket;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
@@ -119,7 +120,12 @@ public class ClientSocketRunner implements Runnable {
 
     private void handleReceive(Socket socket) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                            socket.getInputStream()
+                            , StandardCharsets.ISO_8859_1
+                    )
+            );
 
             while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
 //                if (reader.ready()) { // 데이터가 준비된 경우만 읽기

@@ -3,6 +3,7 @@ package org.gosqo.tcpsocket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
@@ -144,7 +145,13 @@ public class ServerSocketRunner implements Runnable {
 
     private void handleReceive(Socket clientSocket) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                            clientSocket.getInputStream(),
+                            StandardCharsets.ISO_8859_1
+                    )
+            );
+
             String received;
 
             while ((received = reader.readLine()) != null) { // reader.readLine(): 대기 지점. 클라이언트 측에서 접속 해제 시 = null . while 문 탈출
