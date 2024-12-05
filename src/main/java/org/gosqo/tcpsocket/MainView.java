@@ -4,7 +4,10 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.util.logging.Logger;
@@ -15,16 +18,16 @@ public class MainView {
     boolean isServerMode = false;
     Label modeSelectionLabel;
     RadioButton serverModeButton, clientModeButton;
-    TextArea chatConsole, appMessageConsole;
+    TextArea chatConsole, appMessageConsole, chatInput;
     private final ConnectionController connectionController = new ConnectionController(
             this::appendChatMessage
             , this::appendAppMessage
     );
-    TextField ipAddressInput, portInput, chatInput;
+    TextField ipAddressInput, portInput;
     Button serverStartButton, clientStartButton, chatSendButton, serverStopButton, clientDisconnectButton;
     ToggleGroup modeToggleGroup;
 
-    VBox connectForm;
+    VBox connectForm, consoleComponent;
 
     private void initElements() {
         // mode selection
@@ -63,18 +66,31 @@ public class MainView {
         connectForm.getChildren().setAll(clientModeConnectForm());
 
         // consoles
+        consoleComponent = new VBox(10);
         appMessageConsole = new TextArea();
         chatConsole = new TextArea();
-        chatInput = new TextField();
+        chatInput = new TextArea();
         chatSendButton = new Button("Send");
 
         appMessageConsole.setPromptText("app message appears here.");
         appMessageConsole.setEditable(false);
+        appMessageConsole.setFocusTraversable(false);
 
+        chatConsole.setPromptText("sent/received chat appears here.");
         chatConsole.setEditable(false);
+        chatConsole.setFocusTraversable(false);
 
         chatInput.setPromptText("chat here.");
+        chatInput.setPrefHeight(64);
 
+        VBox.setVgrow(chatConsole, Priority.ALWAYS);
+
+        consoleComponent.getChildren().addAll(
+                appMessageConsole
+                , chatConsole
+                , chatInput
+                , chatSendButton
+        );
         // set element event handlers
         addElementsHandlers();
     }
@@ -93,7 +109,41 @@ public class MainView {
         clientStartButton.setOnAction(event -> startClient());
         clientDisconnectButton.setOnAction(event -> disconnect());
 
+        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::makeTabFocusNextComponent);
+        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::enterKeyFireSendButton);
+        chatInput.addEventFilter(KeyEvent.KEY_PRESSED, this::lineFeed);
         chatSendButton.setOnAction(event -> sendMessage());
+    }
+
+    private void makeTabFocusNextComponent(KeyEvent event) {
+        // TextArea 에서 TAB 이 '\t' 입력을 기본으로 수행.
+        // TAB 에 기존 이벤트를 막고, 다음 노드인 chatSendButton 에 포커스.
+        if (event.getCode() == KeyCode.TAB && !event.isShiftDown()) {
+            chatSendButton.requestFocus();
+
+            event.consume();
+        }
+    }
+
+    private void enterKeyFireSendButton(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
+            chatSendButton.fire();
+
+            event.consume();
+        }
+    }
+
+    private void lineFeed(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER && event.isShiftDown()) {
+            int caretPosition = chatInput.getCaretPosition();
+            String text = chatInput.getText();
+            String lineFed = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+
+            chatInput.setText(lineFed);
+            chatInput.positionCaret(caretPosition + 1);
+
+            event.consume();
+        }
     }
 
     void stageClose() {
@@ -142,8 +192,6 @@ public class MainView {
 
         if (startResponse.status() == 200) {
             connectionController.makeServerListen(this::appendAppMessage);
-
-//            appendAppMessage(listenResponse.message());
         }
     }
 
@@ -154,18 +202,6 @@ public class MainView {
     }
 
     // ui components
-    private VBox consoleComponent() {
-        VBox component = new VBox(10);
-        component.getChildren().addAll(
-                appMessageConsole
-                , chatConsole
-                , chatInput
-                , chatSendButton
-        );
-
-        return component;
-    }
-
     private VBox serverModeConnectForm() {
         HBox buttons = new HBox(10);
         buttons.getChildren().addAll(
@@ -218,15 +254,16 @@ public class MainView {
     Scene createScene() {
         initElements();
 
-        VBox layout = new VBox(10);
+        VBox layout = new VBox(16);
+        VBox.setVgrow(consoleComponent, Priority.ALWAYS);
 
         layout.setPadding(new Insets(20.0));
         layout.getChildren().addAll(
                 modeSelectionComponent()
                 , connectForm
-                , consoleComponent()
+                , consoleComponent
         );
 
-        return new Scene(layout, 400, 600);
+        return new Scene(layout, 600, 800);
     }
 }
