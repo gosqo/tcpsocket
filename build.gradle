@@ -1,3 +1,5 @@
+import org.openjfx.gradle.JavaFXPlatform
+
 plugins {
     id 'java'
     id 'application'
@@ -20,7 +22,7 @@ application {
 
 javafx {
     version = "17.0.7"
-    modules = [ 'javafx.controls' ]
+    modules = ['javafx.controls']
 }
 
 tasks.register('printJavafxPath') {
@@ -50,4 +52,22 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+configurations
+        .matching(it -> it.name.contains("downloadSources"))
+        .configureEach {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, platform.osFamily))
+                attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, platform.arch))
+            }
+        }
+
+def getPlatform() {
+    return JavaFXPlatform.detect(osdetector);
+}
+
+ext {
+    platform = getPlatform()
 }
