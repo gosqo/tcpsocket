@@ -16,6 +16,11 @@ public class HexConverter {
         for (int i = 0; i < length; i += 2) {
             int digit1 = Character.digit(hex.charAt(i), 16);
             int digit2 = Character.digit(hex.charAt(i + 1), 16);
+
+            if (digit1 < 0 || digit2 < 0) {
+                throw new IllegalArgumentException("one or more digits is not in the Hexadecimal range");
+            }
+
             data[i / 2] = (byte) (
                     (digit1 << 4) + digit2
             );
