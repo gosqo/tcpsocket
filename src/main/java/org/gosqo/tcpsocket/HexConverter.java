@@ -18,7 +18,8 @@ public class HexConverter {
             int digit2 = Character.digit(hex.charAt(i + 1), 16);
 
             if (digit1 < 0 || digit2 < 0) {
-                throw new IllegalArgumentException("one or more digits is not in the Hexadecimal range");
+                throw new IllegalArgumentException("One or more digits is not in the Hexadecimal range."
+                + "\n\tOtherwise, please check if 'Enter in Hex' is checked.");
             }
 
             data[i / 2] = (byte) (
