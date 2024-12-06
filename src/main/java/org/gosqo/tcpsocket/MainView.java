@@ -259,8 +259,10 @@ public class MainView {
     private void startClient() {
         String ipAddress = ipAddressInput.getText();
         String port = portInput.getText();
+        boolean showHex = this.showHex.isSelected();
+        boolean enterHex = this.enterHex.isSelected();
 
-        connectionController.runClient(ipAddress, port);
+        connectionController.runClient(ipAddress, port, showHex, enterHex);
     }
 
     private void disconnect() {
@@ -270,7 +272,10 @@ public class MainView {
     // server
     private void startServer() {
         String port = portInput.getText();
-        Response startResponse = connectionController.startServer(port);
+        boolean showHex = this.showHex.isSelected();
+        boolean enterHex = this.enterHex.isSelected();
+
+        Response startResponse = connectionController.startServer(port, showHex, enterHex);
 
         appendAppMessage(startResponse.message());
 

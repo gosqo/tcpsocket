@@ -26,7 +26,7 @@ public class ConnectionController {
     }
 
     // server
-    Response startServer(String port) {
+    Response startServer(String port, boolean showHex, boolean enterHex) {
         // validation
         if (port == null || port.isBlank()) {
             return new Response(400
@@ -47,6 +47,9 @@ public class ConnectionController {
         // service
         try {
             server.run(); // new runnable thread
+
+            server.setShowHex(showHex);
+            server.setEnterHex(enterHex);
         } catch (Exception e) {
             return new Response(400
                     , "port " + server.getPort() + " is " + e.getMessage());
@@ -80,9 +83,11 @@ public class ConnectionController {
     }
 
     // client
-    void runClient(String ipAddress, String port) {
+    void runClient(String ipAddress, String port, boolean showHex, boolean enterHex) {
         client.setHost(ipAddress);
         client.setPort(Integer.parseInt(port));
+        client.setShowHex(showHex);
+        client.setEnterHex(enterHex);
 
         client.run();
     }
