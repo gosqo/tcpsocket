@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 class HexTest {
 
@@ -20,6 +21,18 @@ class HexTest {
             );
         }
         return data;
+    }
+
+    @Test
+    void hangulHexToString() {
+        String in = "한글을 처리해보자";
+
+        byte[] bytes = in.getBytes(StandardCharsets.UTF_8);
+        System.out.println(Arrays.toString(bytes));
+
+        String out = new String(bytes, StandardCharsets.UTF_8);
+
+        System.out.println(out);
     }
 
     @Test
