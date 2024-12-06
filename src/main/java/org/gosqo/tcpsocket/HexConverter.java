@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets;
 
 public class HexConverter {
 
-    static String hexStringTo8859Encoded(String hex) throws IllegalArgumentException {
+    static String hexStringToUTF_8Encoded(String hex) throws IllegalArgumentException {
         int length = hex.length();
 
         if (length % 2 != 0) {
@@ -27,7 +27,7 @@ public class HexConverter {
             );
         }
 
-        return new String(data, StandardCharsets.ISO_8859_1);
+        return new String(data, StandardCharsets.UTF_8);
     }
 
     static String stringToHex(String s) {

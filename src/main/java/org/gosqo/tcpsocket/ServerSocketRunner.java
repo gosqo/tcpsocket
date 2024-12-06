@@ -169,7 +169,7 @@ public class ServerSocketRunner implements Runnable {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(
                             clientSocket.getInputStream(),
-                            StandardCharsets.ISO_8859_1
+                            StandardCharsets.UTF_8
                     )
             );
 
@@ -217,16 +217,15 @@ public class ServerSocketRunner implements Runnable {
     }
 
     private String decideHowToShow(String entered) {
-        final String toShow;
 
         if (enterHex && showHex) return HexConverter.separateEach2(entered);
-        if (enterHex && !showHex) return HexConverter.hexStringTo8859Encoded(entered);
+        if (enterHex && !showHex) return HexConverter.hexStringToUTF_8Encoded(entered);
         if (!enterHex && showHex) return HexConverter.stringToHex(entered);
         return entered;
     }
 
     private String convertIfEnterHex(String message) {
-        return enterHex ? HexConverter.hexStringTo8859Encoded(message) : message;
+        return enterHex ? HexConverter.hexStringToUTF_8Encoded(message) : message;
     }
 
     private String convertIfShowHex(String message) {
