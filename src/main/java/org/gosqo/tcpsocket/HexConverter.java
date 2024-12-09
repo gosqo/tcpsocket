@@ -1,8 +1,10 @@
 package org.gosqo.tcpsocket;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class HexConverter {
+    public static final Charset BASE_CHARSET = StandardCharsets.ISO_8859_1;
 
     static String hexStringToUTF_8Encoded(String hex) throws IllegalArgumentException {
         int length = hex.length();
@@ -27,13 +29,13 @@ public class HexConverter {
             );
         }
 
-        return new String(data, StandardCharsets.UTF_8);
+        return new String(data, BASE_CHARSET);
     }
 
     static String stringToHex(String s) {
         StringBuilder ret = new StringBuilder();
 
-        byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+        byte[] bytes = s.getBytes(BASE_CHARSET);
 
         for (byte b : bytes) {
             String hexFormatted = "%02x ".formatted(b);

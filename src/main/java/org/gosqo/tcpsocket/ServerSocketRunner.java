@@ -3,7 +3,6 @@ package org.gosqo.tcpsocket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
@@ -131,7 +130,11 @@ public class ServerSocketRunner implements Runnable {
 
     private void handleTransmit(Socket clientSocket) {
         try {
-            PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
+            PrintWriter writer = new PrintWriter(
+                    clientSocket.getOutputStream()
+                    , true
+                    , HexConverter.BASE_CHARSET
+            );
 
             while (!serverSocket.isClosed() && !Thread.currentThread().isInterrupted()) {
                 final String entered = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
@@ -169,7 +172,7 @@ public class ServerSocketRunner implements Runnable {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(
                             clientSocket.getInputStream(),
-                            StandardCharsets.UTF_8
+                            HexConverter.BASE_CHARSET
                     )
             );
 

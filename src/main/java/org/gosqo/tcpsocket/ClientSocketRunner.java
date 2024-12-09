@@ -5,7 +5,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
@@ -119,7 +118,11 @@ public class ClientSocketRunner implements Runnable {
 
     private void handleTransmit(Socket socket) {
         try {
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            PrintWriter writer = new PrintWriter(
+                    socket.getOutputStream()
+                    , true
+                    , HexConverter.BASE_CHARSET
+            );
 
             while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
                 final String entered = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
@@ -174,7 +177,7 @@ public class ClientSocketRunner implements Runnable {
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(
                             socket.getInputStream()
-                            , StandardCharsets.UTF_8
+                            , HexConverter.BASE_CHARSET
                     )
             );
 
