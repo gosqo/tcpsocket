@@ -47,7 +47,7 @@ public class ClientSocketRunner implements Runnable {
             }
 
             socket = new Socket();
-            socket.connect(new InetSocketAddress(host, port), 500);
+            socket.connect(new InetSocketAddress(host, port), 1500);
 
             appMessageHandler.accept("\nSocket connected to: " + socket.getRemoteSocketAddress());
 
