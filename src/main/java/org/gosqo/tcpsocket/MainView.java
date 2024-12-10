@@ -128,6 +128,7 @@ public class MainView {
     }
 
     private void addKeyEventHandlers() {
+        modeButtons.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
         ipAddressInput.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
 
         portInput.addEventHandler(KeyEvent.KEY_PRESSED, this::enterKeyFireConnectButton);
