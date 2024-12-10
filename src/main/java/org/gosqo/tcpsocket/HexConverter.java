@@ -2,18 +2,23 @@ package org.gosqo.tcpsocket;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class HexConverter {
     public static final Charset BASE_CHARSET = StandardCharsets.ISO_8859_1;
 
-    static String bytesToString(byte[] bytes, Charset charset) {
-        return new String(bytes, charset);
+    static String bytesToString(byte[] bytes, int length, Charset charset) {
+        return new String(bytes, 0, length, charset);
     }
 
-    static String bytesToHexExpression(byte[] bytes) {
+    static String bytesToHexExpression(byte[] bytes, int length) {
+
+        byte[] copy = bytes.length == length
+                ? bytes
+                : Arrays.copyOf(bytes, length);
         StringBuilder builder = new StringBuilder();
 
-        for (byte b : bytes) {
+        for (byte b : copy) {
             builder.append("%02X ".formatted(b));
         }
 

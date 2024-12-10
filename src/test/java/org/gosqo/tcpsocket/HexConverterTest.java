@@ -27,7 +27,7 @@ public class HexConverterTest {
     @ParameterizedTest
     @MethodSource("provideByteArrays")
     void bytesToHexExpression(byte[] param) {
-        String hexExp = HexConverter.bytesToHexExpression(param);
+        String hexExp = HexConverter.bytesToHexExpression(param, param.length);
 
         System.out.println(hexExp);
     }
@@ -35,7 +35,7 @@ public class HexConverterTest {
     @ParameterizedTest
     @MethodSource("provideByteArrays")
     void bytesToString(byte[] param) {
-        String s = HexConverter.bytesToString(param, HexConverter.BASE_CHARSET);
+        String s = HexConverter.bytesToString(param, param.length, HexConverter.BASE_CHARSET);
 
         System.out.println(s);
     }

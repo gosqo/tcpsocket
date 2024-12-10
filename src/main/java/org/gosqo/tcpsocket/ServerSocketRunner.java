@@ -140,19 +140,21 @@ public class ServerSocketRunner implements Runnable {
                 if (entered != null) {
                     String addCrLf = addCrLf(entered); // temp code: feat add CR, LF would be coded.
                     final byte[] bytes;
+                    int length;
 
                     try {
                         bytes = getBytes(addCrLf);
+                        length = bytes.length;
                     } catch (IllegalArgumentException e) {
                         appMessageHandler.accept("Cannot parse to byte " + e.getMessage()
                                 + "Please check whether 'Enter in Hex' mode on.");
                         continue;
                     }
 
-                    out.write(bytes, 0, bytes.length);
+                    out.write(bytes, 0, length);
                     out.flush();
 
-                    final String toShow = decideHowToShow(bytes);
+                    final String toShow = decideHowToShow(bytes, length);
 
                     chatMessageHandler.accept("%04d %s:%d (Me) [%s]: %s".formatted(
                                     communicateIndex++
@@ -239,13 +241,14 @@ public class ServerSocketRunner implements Runnable {
         }
     }
 
-    private String decideHowToShow(byte[] bytes) {
+    private String decideHowToShow(byte[] bytes, int length) {
+
         if (showHex) {
-            return HexConverter.bytesToHexExpression(bytes);
+            return HexConverter.bytesToHexExpression(bytes, length);
         }
 
         // temp code: if CR, LF added, - to be method for feature
-        String converted = HexConverter.bytesToString(bytes, HexConverter.BASE_CHARSET);
+        String converted = HexConverter.bytesToString(bytes, length, HexConverter.BASE_CHARSET);
         String crReplaced = converted.replaceAll("\\r", " \\\\r");
         String lfReplaced = crReplaced.replaceAll("\\n", " \\\\n");
 
