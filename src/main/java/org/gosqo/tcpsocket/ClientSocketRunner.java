@@ -148,7 +148,9 @@ public class ClientSocketRunner implements Runnable {
                         length = bytes.length;
                     } catch (IllegalArgumentException e) {
                         appMessageHandler.accept("Cannot parse to byte " + e.getMessage()
-                                + "Please check whether 'Enter in Hex' mode on.");
+                                + ".\n\tPlease check whether 'Enter in Hex' mode is on."
+                                + "\n\tOtherwise enter between (hexadecimal) 00 - ff for each byte."
+                        );
                         continue;
                     }
 

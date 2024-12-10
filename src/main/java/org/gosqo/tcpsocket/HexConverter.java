@@ -42,7 +42,7 @@ public class HexConverter {
                 throw new IllegalArgumentException("cannot pair in 2 digit hex");
             }
 
-            bytes[i] = Byte.parseByte(each, 16); // NumberFormatException
+            bytes[i] = (byte) Integer.parseInt(each, 16); // NumberFormatException
         }
 
         return bytes;
