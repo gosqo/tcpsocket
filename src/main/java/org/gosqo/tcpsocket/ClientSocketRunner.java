@@ -110,12 +110,8 @@ public class ClientSocketRunner implements Runnable {
                 socket.close();
             }
 
-            if (transmitThread != null) {
+            if (transmitThread != null && transmitThread.isAlive()) {
                 transmitThread.interrupt();
-            }
-
-            if (receiveThread != null) {
-                receiveThread.interrupt();
             }
 
             message = "\nDisconnected. Client socket closed.";
@@ -172,6 +168,12 @@ public class ClientSocketRunner implements Runnable {
                 }
             }
         } catch (IOException | InterruptedException e) {
+
+            if (e instanceof InterruptedException) {
+                log.warning(Thread.currentThread().getName() + " interrupted and closed.");
+                return;
+            }
+
             log.warning(e.getMessage());
         }
     }
@@ -200,12 +202,18 @@ public class ClientSocketRunner implements Runnable {
                         )
                 );
             }
-            socket.close();
+            this.close();
             appMessageHandler.accept("%n[%s] Socket closed.".formatted(
                     LocalDateTime.now().format(dateTimeFormatter)
             ));
         } catch (IOException e) {
             log.info(e.getMessage());
+
+            this.close();
+            appMessageHandler.accept("%n[%s] Exception from Server: %s".formatted(
+                    LocalDateTime.now().format(dateTimeFormatter)
+                    , e.getMessage()
+            ));
         }
     }
 
