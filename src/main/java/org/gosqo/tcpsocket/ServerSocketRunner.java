@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 public class ServerSocketRunner implements Runnable {
     private static final Logger log = Logger.getLogger("ServerSocketRunner");
+    private static final int INPUT_BUFFER_SIZE = 512;
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
     private final Consumer<String> chatMessageHandler;
     private final Consumer<String> appMessageHandler;
@@ -192,18 +193,20 @@ public class ServerSocketRunner implements Runnable {
     }
 
     private void handleReceive(Socket clientSocket) {
-        try {
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(
-                            clientSocket.getInputStream(),
-                            HexConverter.BASE_CHARSET
-                    )
-            );
+        try (InputStream in = clientSocket.getInputStream()) {
+            byte[] buffer = new byte[INPUT_BUFFER_SIZE];
 
-            String received;
+            while (true) { // reader.readLine(): 대기 지점. 클라이언트 측에서 접속 해제 시 = null . while 문 탈출
+                int length = in.read(buffer);
 
-            while ((received = reader.readLine()) != null) { // reader.readLine(): 대기 지점. 클라이언트 측에서 접속 해제 시 = null . while 문 탈출
-                String toShow = convertIfShowHex(received);
+                if (length == -1) {
+                    break;
+                }
+                String toShow = decideHowToShow(buffer, length);
+
+                if (communicateIndex == 0) {
+                    chatMessageHandler.accept("");
+                }
 
                 chatMessageHandler.accept("%04d %s (Client) [%s]: %s".formatted(
                                 communicateIndex++
@@ -214,8 +217,7 @@ public class ServerSocketRunner implements Runnable {
                 );
             }
 
-            clientSocket.close();
-            serverSocket.close();
+            this.close();
 
             appMessageHandler.accept("%n[%s] client %s socket closed.".formatted(
                             LocalDateTime.now().format(dateTimeFormatter)
@@ -225,15 +227,7 @@ public class ServerSocketRunner implements Runnable {
         } catch (IOException e) { // 서버 측에서 close() 호출 시 this.clientSocket.close() 하며 예외 발생. 로깅
             log.warning(e.getMessage());
 
-            try {
-                clientSocket.close();
-                serverSocket.close();
-            } catch (IOException eOnClose) {
-                eOnClose.printStackTrace(new PrintStream(System.out));
-            }
-
-            transmitThread.interrupt();
-
+            this.close();
             appMessageHandler.accept("%n[%s] Exception from client %s %s".formatted(
                             LocalDateTime.now().format(dateTimeFormatter)
                             , clientSocket.getRemoteSocketAddress().toString()
