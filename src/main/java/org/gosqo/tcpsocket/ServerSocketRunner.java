@@ -45,10 +45,6 @@ public class ServerSocketRunner implements Runnable {
         this.port = port;
     }
 
-    public boolean isShowHex() {
-        return showHex;
-    }
-
     public void setShowHex(boolean showHex) {
         this.showHex = showHex;
     }
@@ -253,13 +249,5 @@ public class ServerSocketRunner implements Runnable {
         String lfReplaced = crReplaced.replaceAll("\\n", " \\\\n");
 
         return lfReplaced;
-    }
-
-    private String convertIfEnterHex(String message) {
-        return enterHex ? HexConverter.hexStringToUTF_8Encoded(message) : message;
-    }
-
-    private String convertIfShowHex(String message) {
-        return showHex ? HexConverter.stringToHex(message) : message;
     }
 }
