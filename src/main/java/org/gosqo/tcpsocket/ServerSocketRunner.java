@@ -1,6 +1,9 @@
 package org.gosqo.tcpsocket;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
@@ -129,28 +132,27 @@ public class ServerSocketRunner implements Runnable {
     }
 
     private void handleTransmit(Socket clientSocket) {
-        try {
-            PrintWriter writer = new PrintWriter(
-                    clientSocket.getOutputStream()
-                    , true
-                    , HexConverter.BASE_CHARSET
-            );
+        try (OutputStream out = clientSocket.getOutputStream()) {
 
-            while (!serverSocket.isClosed() && !Thread.currentThread().isInterrupted()) {
+            while (true) {
                 final String entered = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
 
                 if (entered != null) {
+                    String addCrLf = addCrLf(entered); // temp code: feat add CR, LF would be coded.
+                    final byte[] bytes;
 
                     try {
-                        final String toSend = convertIfEnterHex(entered);
-
-                        writer.println(toSend); // 서버로 메시지 전송
+                        bytes = getBytes(addCrLf);
                     } catch (IllegalArgumentException e) {
-                        appMessageHandler.accept(e.getMessage());
+                        appMessageHandler.accept("Cannot parse to byte " + e.getMessage()
+                                + "Please check whether 'Enter in Hex' mode on.");
                         continue;
                     }
 
-                    final String toShow = decideHowToShow(entered);
+                    out.write(bytes, 0, bytes.length);
+                    out.flush();
+
+                    final String toShow = decideHowToShow(bytes);
 
                     chatMessageHandler.accept("%04d %s:%d (Me) [%s]: %s".formatted(
                                     communicateIndex++
@@ -165,6 +167,24 @@ public class ServerSocketRunner implements Runnable {
         } catch (IOException | InterruptedException e) {
             log.warning(e.getMessage());
         }
+    }
+
+    private String addCrLf(String s) {
+        if (enterHex) {
+            String trimmed = s.trim();
+            if (trimmed.contains(" ")) {
+                return trimmed + " 0d 0a";
+            }
+            return trimmed + "0d0a";
+        }
+        return s + "\r\n";
+    }
+
+    private byte[] getBytes(String s) {
+        if (enterHex) {
+            return HexConverter.hexExpressionToBytes(s);
+        }
+        return s.getBytes(HexConverter.BASE_CHARSET);
     }
 
     private void handleReceive(Socket clientSocket) {
@@ -219,12 +239,17 @@ public class ServerSocketRunner implements Runnable {
         }
     }
 
-    private String decideHowToShow(String entered) {
+    private String decideHowToShow(byte[] bytes) {
+        if (showHex) {
+            return HexConverter.bytesToHexExpression(bytes);
+        }
 
-        if (enterHex && showHex) return HexConverter.separateEach2(entered);
-        if (enterHex && !showHex) return HexConverter.hexStringToUTF_8Encoded(entered);
-        if (!enterHex && showHex) return HexConverter.stringToHex(entered);
-        return entered;
+        // temp code: if CR, LF added, - to be method for feature
+        String converted = HexConverter.bytesToString(bytes, HexConverter.BASE_CHARSET);
+        String crReplaced = converted.replaceAll("\\r", " \\\\r");
+        String lfReplaced = crReplaced.replaceAll("\\n", " \\\\n");
+
+        return lfReplaced;
     }
 
     private String convertIfEnterHex(String message) {
