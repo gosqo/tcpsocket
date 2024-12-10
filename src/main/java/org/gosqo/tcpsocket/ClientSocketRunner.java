@@ -1,6 +1,9 @@
 package org.gosqo.tcpsocket;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -35,6 +38,22 @@ public class ClientSocketRunner implements Runnable {
     ) {
         this.chatMessageHandler = chatMessageHandler;
         this.appMessageHandler = appMessageHandler;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setShowHex(boolean showHex) {
+        this.showHex = showHex;
+    }
+
+    public void setEnterHex(boolean enterHex) {
+        this.enterHex = enterHex;
     }
 
     @Override
@@ -155,38 +174,27 @@ public class ClientSocketRunner implements Runnable {
         }
     }
 
-    private String decideHowToShow(String entered) {
-        final String toShow;
-
-        if (enterHex && showHex) return HexConverter.separateEach2(entered);
-        if (enterHex && !showHex) return HexConverter.hexStringToUTF_8Encoded(entered);
-        if (!enterHex && showHex) return HexConverter.stringToHex(entered);
-        return entered;
-    }
-
-    private String convertIfEnterHex(String message) {
-        return enterHex ? HexConverter.hexStringToUTF_8Encoded(message) : message;
-    }
-
-    private String convertIfShowHex(String message) {
-        return showHex ? HexConverter.stringToHex(message) : message;
-    }
-
     private void handleReceive(Socket socket) {
         try {
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(
-                            socket.getInputStream()
-                            , HexConverter.BASE_CHARSET
-                    )
-            );
+            DataInputStream in = new DataInputStream(socket.getInputStream());
 
-            while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
-                String received = reader.readLine();
+            while (true) {
+                int length = in.readInt();
 
-                if (received == null) break; // null이면 스트림 종료
+                if (length == -1) {
+                    continue;
+                }
 
-                String toShow = convertIfShowHex(received);
+                byte[] buffer = new byte[length];
+                in.readFully(buffer);
+
+                if (buffer.length == 0) {
+                    break;
+                }
+
+                String message = new String(buffer, HexConverter.BASE_CHARSET);
+
+                String toShow = convertIfShowHex(message);
 
                 chatMessageHandler.accept("%04d %s (Remote) [%s]: %s".formatted(
                                 communicateIndex++
@@ -205,19 +213,20 @@ public class ClientSocketRunner implements Runnable {
         }
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    private String decideHowToShow(String entered) {
+        final String toShow;
+
+        if (enterHex && showHex) return HexConverter.separateEach2(entered);
+        if (enterHex && !showHex) return HexConverter.hexStringToUTF_8Encoded(entered);
+        if (!enterHex && showHex) return HexConverter.stringToHex(entered);
+        return entered;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    private String convertIfEnterHex(String message) {
+        return enterHex ? HexConverter.hexStringToUTF_8Encoded(message) : message;
     }
 
-    public void setShowHex(boolean showHex) {
-        this.showHex = showHex;
-    }
-
-    public void setEnterHex(boolean enterHex) {
-        this.enterHex = enterHex;
+    private String convertIfShowHex(String message) {
+        return showHex ? HexConverter.stringToHex(message) : message;
     }
 }
