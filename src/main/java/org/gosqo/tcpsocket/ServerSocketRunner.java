@@ -135,12 +135,12 @@ public class ServerSocketRunner implements Runnable {
                 final String entered = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
 
                 if (entered != null) {
-                    String addCrLf = addCrLf(entered); // temp code: feat add CR, LF would be coded.
+                    String addCrLf = UiStateReflector.addCrLf(enterHex, entered); // temp code: feat add CR, LF would be coded.
                     final byte[] bytes;
                     int length;
 
                     try {
-                        bytes = getBytes(addCrLf);
+                        bytes = UiStateReflector.getBytes(enterHex, addCrLf);
                         length = bytes.length;
                     } catch (IllegalArgumentException e) {
                         appMessageHandler.accept("Cannot parse to byte " + e.getMessage()
@@ -151,7 +151,7 @@ public class ServerSocketRunner implements Runnable {
                     out.write(bytes, 0, length);
                     out.flush();
 
-                    final String toShow = decideHowToShow(bytes, length);
+                    final String toShow = UiStateReflector.decideHowToShow(showHex, bytes, length);
 
                     chatMessageHandler.accept("%04d %s:%d (Me) [%s]: %s".formatted(
                                     communicateIndex++
@@ -174,24 +174,6 @@ public class ServerSocketRunner implements Runnable {
         }
     }
 
-    private String addCrLf(String s) {
-        if (enterHex) {
-            String trimmed = s.trim();
-            if (trimmed.contains(" ")) {
-                return trimmed + " 0d 0a";
-            }
-            return trimmed + "0d0a";
-        }
-        return s + "\r\n";
-    }
-
-    private byte[] getBytes(String s) {
-        if (enterHex) {
-            return HexConverter.hexExpressionToBytes(s);
-        }
-        return s.getBytes(HexConverter.BASE_CHARSET);
-    }
-
     private void handleReceive(Socket clientSocket) {
         try (InputStream in = clientSocket.getInputStream()) {
             byte[] buffer = new byte[INPUT_BUFFER_SIZE];
@@ -202,7 +184,7 @@ public class ServerSocketRunner implements Runnable {
                 if (length == -1) {
                     break;
                 }
-                String toShow = decideHowToShow(buffer, length);
+                String toShow = UiStateReflector.decideHowToShow(showHex, buffer, length);
 
                 if (communicateIndex == 0) {
                     chatMessageHandler.accept("");
@@ -235,19 +217,5 @@ public class ServerSocketRunner implements Runnable {
                     )
             );
         }
-    }
-
-    private String decideHowToShow(byte[] bytes, int length) {
-
-        if (showHex) {
-            return HexConverter.bytesToHexExpression(bytes, length);
-        }
-
-        // temp code: if CR, LF added, - to be method for feature
-        String converted = HexConverter.bytesToString(bytes, length, HexConverter.BASE_CHARSET);
-        String crReplaced = converted.replaceAll("\\r", " \\\\r");
-        String lfReplaced = crReplaced.replaceAll("\\n", " \\\\n");
-
-        return lfReplaced;
     }
 }
