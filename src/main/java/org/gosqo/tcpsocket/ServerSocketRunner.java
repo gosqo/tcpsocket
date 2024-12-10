@@ -163,6 +163,12 @@ public class ServerSocketRunner implements Runnable {
                 }
             }
         } catch (IOException | InterruptedException e) {
+
+            if (e instanceof InterruptedException) {
+                log.warning(Thread.currentThread().getName() + " interrupted and closed.");
+                return;
+            }
+
             log.warning(e.getMessage());
         }
     }
