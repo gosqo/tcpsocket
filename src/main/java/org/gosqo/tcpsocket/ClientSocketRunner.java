@@ -1,9 +1,9 @@
 package org.gosqo.tcpsocket;
 
-import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 public class ClientSocketRunner implements Runnable {
     private static final Logger log = Logger.getLogger("ClientSocketRunner");
-
+    private static final int INPUT_BUFFER_SIZE = 512;
     private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
     private final Consumer<String> chatMessageHandler;
     private final Consumer<String> appMessageHandler;
@@ -136,28 +136,30 @@ public class ClientSocketRunner implements Runnable {
     }
 
     private void handleTransmit(Socket socket) {
-        try {
-            PrintWriter writer = new PrintWriter(
-                    socket.getOutputStream()
-                    , true
-                    , HexConverter.BASE_CHARSET
-            );
+        try (OutputStream out = socket.getOutputStream()) {
 
-            while (!socket.isClosed() && !Thread.currentThread().isInterrupted()) {
+            while (true) {
                 final String entered = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
 
                 if (entered != null) {
+                    String addCrLf = UiStateReflector.addCrLf(enterHex,
+                            entered); // temp code: feat add CR, LF would be coded.
+                    final byte[] bytes;
+                    int length;
 
                     try {
-                        final String toSend = convertIfEnterHex(entered);
-
-                        writer.println(toSend); // 서버로 메시지 전송
+                        bytes = UiStateReflector.getBytes(enterHex, addCrLf);
+                        length = bytes.length;
                     } catch (IllegalArgumentException e) {
-                        appMessageHandler.accept(e.getMessage());
+                        appMessageHandler.accept("Cannot parse to byte " + e.getMessage()
+                                + "Please check whether 'Enter in Hex' mode on.");
                         continue;
                     }
 
-                    final String toShow = decideHowToShow(entered);
+                    out.write(bytes, 0, length);
+                    out.flush();
+
+                    final String toShow = UiStateReflector.decideHowToShow(showHex, bytes, length);
 
                     chatMessageHandler.accept("%04d %s:%d (Me) [%s]: %s".formatted(
                                     communicateIndex++
@@ -175,26 +177,20 @@ public class ClientSocketRunner implements Runnable {
     }
 
     private void handleReceive(Socket socket) {
-        try {
-            DataInputStream in = new DataInputStream(socket.getInputStream());
+        try (InputStream in = socket.getInputStream()) {
+            byte[] buffer = new byte[INPUT_BUFFER_SIZE];
 
-            while (true) {
-                int length = in.readInt();
+            while (true) { // reader.readLine(): 대기 지점. 클라이언트 측에서 접속 해제 시 = null . while 문 탈출
+                int length = in.read(buffer);
 
                 if (length == -1) {
-                    continue;
-                }
-
-                byte[] buffer = new byte[length];
-                in.readFully(buffer);
-
-                if (buffer.length == 0) {
                     break;
                 }
+                String toShow = UiStateReflector.decideHowToShow(showHex, buffer, length);
 
-                String message = new String(buffer, HexConverter.BASE_CHARSET);
-
-                String toShow = convertIfShowHex(message);
+                if (communicateIndex == 0) {
+                    chatMessageHandler.accept("");
+                }
 
                 chatMessageHandler.accept("%04d %s (Remote) [%s]: %s".formatted(
                                 communicateIndex++
