@@ -4,14 +4,17 @@
 
 서버와 클라이언트가 1:1 로 소켓을 형성, 상호간 통신을 위한 데스크탑용 앱(프로그램)입니다.
 
+이 앱은 Roboto Mono 폰트를 사용합니다.
+폰트는 Apache License 2.0에 따라 배포되며, 라이선스 전문은 [LICENSE.txt](https://github.com/gosqo/tcpsocket/blob/main/LICENSE.txt)에서 확인할 수 있습니다.
+
 ### 사용
 
 * 앱은 서버, 클라이언트 중 하나의 역할을 수행합니다.
-* 역할에 따라 IP address, port 를 지정, 소켓을 생성 및 연결합니다.
+* 역할에 따라 IP address, port 를 지정, `Start Server`, `Join to Chat` 버튼을 통해 소켓을 생성 및 연결합니다.
 * 예외 발생 시 앱 메시지 콘솔을 통해 예외 내용 전달, 필요시 권고 사항을 안내합니다.
 * 사용자 입력창을 통해 송신할 데이터를 입력, 송신합니다.
 * 메시지 콘솔을 통해, 송•수신한 데이터를 확인할 수 있습니다.
-* 'Stop Server', 'Disconnect' 버튼을 통해, 연결을 해제(통신 종료)할 수 있습니다.
+* `Stop Server`, `Disconnect` 버튼을 통해, 연결을 해제(통신 종료)할 수 있습니다.
 * 소켓 연결이 해제된 경우, 소켓 연결에 사용한 자원을 정리 및 반환합니다.
 * 연결 해제 이후에는 앱 실행 시점(초기화)과 유사한 상태가 됩니다.
 
@@ -24,6 +27,9 @@
 
 * Java 17.0.7
 * JavaFX 17.0.7
+* Font:
+  * Roboto Mono, Copyright © 2024 Google. Licensed under Apache License, Version 2.0.
+    * 이 앱은 Roboto Mono 폰트를 사용하며, 폰트는 ‘있는 그대로’ 제공됩니다.
 
 ## 버전별 안내
 
@@ -40,6 +46,7 @@
     * `68 65 6c 6c 6f`
     * `\s 68 65 6c 6c 6f \s` (해당 형식의 입력은 앞 뒤 `\s`공백 무시)
   * 한 번의 입력에서 1 byte, 공백의 형식과 모두 붙여쓰는 형식을 혼용할 수는 없습니다.
+* 앱 메인 폰트 변경: Roboto Mono(Mono spaced font) 
 
 ### 1.0.0 (2024-12-10)
 
