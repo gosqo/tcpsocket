@@ -1,9 +1,8 @@
 @font-face {
-    font-family: 'Roboto Mono';
+    font-family: 'Roboto Mono Medium';
     src: url('fonts/Roboto_Mono/static/RobotoMono-Medium.ttf');
 }
 
 .root{
-    /* -fx-font-size: 11 pt; */
-    -fx-font-family: "Roboto Mono";
+    -fx-font-family: "Roboto Mono Medium";
 }
