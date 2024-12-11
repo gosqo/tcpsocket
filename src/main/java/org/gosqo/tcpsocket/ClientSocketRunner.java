@@ -218,21 +218,4 @@ public class ClientSocketRunner implements Runnable {
             ));
         }
     }
-
-    private String decideHowToShow(String entered) {
-        final String toShow;
-
-        if (enterHex && showHex) return HexConverter.separateEach2(entered);
-        if (enterHex && !showHex) return HexConverter.hexStringToUTF_8Encoded(entered);
-        if (!enterHex && showHex) return HexConverter.stringToHex(entered);
-        return entered;
-    }
-
-    private String convertIfEnterHex(String message) {
-        return enterHex ? HexConverter.hexStringToUTF_8Encoded(message) : message;
-    }
-
-    private String convertIfShowHex(String message) {
-        return showHex ? HexConverter.stringToHex(message) : message;
-    }
 }
