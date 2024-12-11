@@ -26,7 +26,7 @@ public class ConnectionController {
     }
 
     // server
-    Response startServer(String port, boolean showHex, boolean enterHex) {
+    Response startServer(String port, boolean showHex, boolean enterHex, boolean addCr, boolean addLf) {
         // validation
         if (port == null || port.isBlank()) {
             return new Response(400
@@ -50,6 +50,8 @@ public class ConnectionController {
 
             server.setShowHex(showHex);
             server.setEnterHex(enterHex);
+            server.setAddCr(addCr);
+            server.setAddLf(addLf);
         } catch (Exception e) {
             return new Response(400
                     , "port " + server.getPort() + " is " + e.getMessage());
@@ -83,11 +85,13 @@ public class ConnectionController {
     }
 
     // client
-    void runClient(String ipAddress, String port, boolean showHex, boolean enterHex) {
+    void runClient(String ipAddress, String port, boolean showHex, boolean enterHex, boolean addCr, boolean addLf) {
         client.setHost(ipAddress);
         client.setPort(Integer.parseInt(port));
         client.setShowHex(showHex);
         client.setEnterHex(enterHex);
+        client.setAddCr(addCr);
+        client.setAddLf(addLf);
 
         client.run();
     }
@@ -131,6 +135,42 @@ public class ConnectionController {
         }
 
         client.setEnterHex(false);
+    }
+
+    void addCr(boolean isServer) {
+        if (isServer) {
+            server.setAddCr(true);
+            return;
+        }
+
+        client.setAddCr(true);
+    }
+
+    void disableAddCr(boolean isServer) {
+        if (isServer) {
+            server.setAddCr(false);
+            return;
+        }
+
+        client.setAddCr(false);
+    }
+
+    void addLf(boolean isServer) {
+        if (isServer) {
+            server.setAddLf(true);
+            return;
+        }
+
+        client.setAddLf(true);
+    }
+
+    void disableAddLf(boolean isServer) {
+        if (isServer) {
+            server.setAddLf(false);
+            return;
+        }
+
+        client.setAddLf(false);
     }
 
     Response sendMessage(String message, boolean isServer) {

@@ -16,9 +16,9 @@ public class MainView {
 
     private static final Logger log = Logger.getLogger("MainView");
     boolean isServerMode = false;
-    Label modeSelectionLabel, hexLabel;
+    Label modeSelectionLabel, hexLabel, addSpaceLabel;
     RadioButton serverModeButton, clientModeButton;
-    CheckBox showHex, enterHex;
+    CheckBox showHex, enterHex, addCr, addLf;
     TextArea chatConsole, appMessageConsole, chatInput;
     private final ConnectionController connectionController = new ConnectionController(
             this::appendChatMessage
@@ -28,7 +28,7 @@ public class MainView {
     Button serverStartButton, clientStartButton, chatSendButton, serverStopButton, clientDisconnectButton;
     ToggleGroup modeToggleGroup;
 
-    VBox connectForm, consoleComponent, modeComponent, connectComponent, hexComponent;
+    VBox connectForm, consoleComponent, modeComponent, connectComponent, hexComponent, addSpaceComponent;
     HBox modeButtons, controlBox, chatFormComponent;
 
     private void initElements() {
@@ -80,11 +80,19 @@ public class MainView {
 
         hexComponent.getChildren().addAll(hexLabel, showHex, enterHex);
 
+        // add space component
+        addSpaceComponent = new VBox(10);
+        addSpaceLabel = new Label("Add Space");
+        addCr = new CheckBox("Add 'CR'");
+        addLf = new CheckBox("Add 'LF'");
+
+        addSpaceComponent.getChildren().addAll(addSpaceLabel, addCr, addLf);
+
         // connect component ( mode selection + connect form)
         connectComponent = new VBox(10, modeComponent, connectForm);
 
         // control box (connect component + hex component
-        controlBox = new HBox(20, connectComponent, hexComponent);
+        controlBox = new HBox(20, connectComponent, hexComponent, addSpaceComponent);
 
         // consoles
         consoleComponent = new VBox(10);
@@ -176,6 +184,24 @@ public class MainView {
 
             connectionController.disableEnterHex(isServerMode);
         });
+
+        addCr.setOnAction(event -> {
+            if (addCr.isSelected()) {
+                connectionController.addCr(isServerMode);
+                return;
+            }
+
+            connectionController.disableAddCr(isServerMode);
+        });
+
+        addLf.setOnAction(event -> {
+            if (addLf.isSelected()) {
+                connectionController.addLf(isServerMode);
+                return;
+            }
+
+            connectionController.disableAddLf(isServerMode);
+        });
     }
 
     private void enterKeyFireConnectButton(KeyEvent event) {
@@ -262,8 +288,10 @@ public class MainView {
         String port = portInput.getText();
         boolean showHex = this.showHex.isSelected();
         boolean enterHex = this.enterHex.isSelected();
+        boolean addCr = this.addCr.isSelected();
+        boolean addLf = this.addLf.isSelected();
 
-        connectionController.runClient(ipAddress, port, showHex, enterHex);
+        connectionController.runClient(ipAddress, port, showHex, enterHex, addCr, addLf);
     }
 
     private void disconnect() {
@@ -275,8 +303,10 @@ public class MainView {
         String port = portInput.getText();
         boolean showHex = this.showHex.isSelected();
         boolean enterHex = this.enterHex.isSelected();
+        boolean addCr = this.addCr.isSelected();
+        boolean addLf = this.addLf.isSelected();
 
-        Response startResponse = connectionController.startServer(port, showHex, enterHex);
+        Response startResponse = connectionController.startServer(port, showHex, enterHex, addCr, addLf);
 
         appendAppMessage(startResponse.message());
 
