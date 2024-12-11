@@ -31,6 +31,9 @@ public class ClientSocketRunner implements Runnable {
     private int communicateIndex;
     private boolean showHex;
     private boolean enterHex;
+    private boolean addCr;
+    private boolean addLf;
+
 
     public ClientSocketRunner(
             Consumer<String> chatMessageHandler
@@ -54,6 +57,14 @@ public class ClientSocketRunner implements Runnable {
 
     public void setEnterHex(boolean enterHex) {
         this.enterHex = enterHex;
+    }
+
+    public void setAddCr(boolean addCr) {
+        this.addCr = addCr;
+    }
+
+    public void setAddLf(boolean addLf) {
+        this.addLf = addLf;
     }
 
     @Override
@@ -138,8 +149,7 @@ public class ClientSocketRunner implements Runnable {
                 final String entered = messageQueue.poll(500, TimeUnit.MILLISECONDS); // 대기 시간을 추가
 
                 if (entered != null) {
-                    String addCrLf = UiStateReflector.addCrLf(enterHex,
-                            entered); // temp code: feat add CR, LF would be coded.
+                    String addCrLf = UiStateReflector.addCrLf(addCr, addLf, enterHex, entered);
                     final byte[] bytes;
                     int length;
 

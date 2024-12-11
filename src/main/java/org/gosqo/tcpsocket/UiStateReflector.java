@@ -2,15 +2,50 @@ package org.gosqo.tcpsocket;
 
 public class UiStateReflector {
 
-    static String addCrLf(boolean enterHex, String s) {
-        if (enterHex) {
-            String trimmed = s.trim();
-            if (trimmed.contains(" ")) {
-                return trimmed + " 0d 0a";
-            }
-            return trimmed + "0d0a";
+    static String addCrLf(boolean addCr, boolean addLf, boolean enterHex, String s) {
+
+        if (addCr && addLf) {
+            String temp = addCr(enterHex, s);
+            return addLf(enterHex, temp);
         }
-        return s + "\r\n";
+
+        if (addCr) {
+            return addCr(enterHex, s);
+        }
+
+        if (addLf) {
+            return addLf(enterHex, s);
+        }
+
+        return s;
+    }
+
+    static String addCr(boolean enterHex, String s) {
+        String trimmed = s.trim();
+
+        if (enterHex && trimmed.contains(" ")) {
+            return trimmed + " 0d";
+        }
+
+        if (enterHex) {
+            return trimmed + "0d";
+        }
+
+        return s + "\r";
+    }
+
+    static String addLf(boolean enterHex, String s) {
+        String trimmed = s.trim();
+
+        if (enterHex && trimmed.contains(" ")) {
+            return trimmed + " 0a";
+        }
+
+        if (enterHex) {
+            return trimmed + "0a";
+        }
+
+        return s + "\n";
     }
 
     static byte[] getBytes(boolean enterHex, String s) {
