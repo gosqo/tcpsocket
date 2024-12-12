@@ -9,6 +9,7 @@ import java.util.Objects;
 
 public class ChatApp extends Application {
 
+    public static final String APP_VERSION = "1.1.0";
     private static final MainView mainView = new MainView();
 
     public static void main(String[] args) {
@@ -17,6 +18,7 @@ public class ChatApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        String title = "TCP socket by gosqo " + APP_VERSION;
         Scene scene = mainView.createScene();
         URL mainStylesheet = Objects.requireNonNull(
                 getClass().getResource("main.css")
@@ -24,7 +26,7 @@ public class ChatApp extends Application {
 
         scene.getStylesheets().add(mainStylesheet.toExternalForm());
 
-        stage.setTitle("TCP socket");
+        stage.setTitle(title);
         stage.setScene(scene);
         stage.setOnCloseRequest(event -> mainView.stageClose());
         stage.show();
